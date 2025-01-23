@@ -16,6 +16,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/logo.png",
         "backgroundColor": "#ffffff"
@@ -49,6 +50,7 @@
       "eas": {
         "projectId": "b1ba5d34-0d0c-48b5-abdf-febf47f32d40"
       }
-    }
+    },
+    "owner": "shubham9049"
   }
 }
