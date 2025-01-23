@@ -29,7 +29,7 @@ const RootNavigation = () => {
   };
 
   /**
-   * Retrieve the FCM token for the device.
+   * Retrieve the FCM token for the device .
    */
   const getFcmToken = async () => {
     try {
