@@ -1,9 +1,10 @@
-import { View, Alert, StatusBar } from "react-native";
+import { View, Alert, StatusBar, Text } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Redirect, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import messaging from "@react-native-firebase/messaging";
+import axios from 'axios'; // Add axios for backend requests
 
 // Prevent the splash screen from hiding until we explicitly hide it
 SplashScreen.preventAutoHideAsync();
@@ -60,7 +61,20 @@ const RootNavigation = () => {
         remoteMessage.notification?.body || ""
       );
     });
-
+ // Function to verify the user by checking the authToken
+ const verifyUserToken = async (token: string) => {
+  try {
+    const response = await axios.post('https://app-database.onrender.com/user/verify', { token });
+    if (response.data.success) {
+      setIsLogin(true); // Token is valid
+    } else {
+      setIsLogin(false); // Token is invalid
+    }
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    setIsLogin(false); // Assume user is not logged in on error
+  }
+};
     // App launched from a notification
     messaging()
       .getInitialNotification()
@@ -81,21 +95,26 @@ const RootNavigation = () => {
   /**
    * Check login status by reading the authentication token from AsyncStorage.
    */
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        setIsLogin(!!token); // Set true if token exists, false otherwise
-      } catch (error) {
-        console.error("Error reading token from AsyncStorage:", error);
-        setIsLogin(false); // Consider user not logged in on error
-      } finally {
-        SplashScreen.hideAsync(); // Hide splash screen after checking
+// Check the login status by reading the authentication token from AsyncStorage
+useEffect(() => {
+  const checkLoginStatus = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (token) {
+        await verifyUserToken(token); // Verify the token with backend
+      } else {
+        setIsLogin(false); // No token, user is logged out
       }
-    };
+    } catch (error) {
+      console.error("Error reading token from AsyncStorage:", error);
+      setIsLogin(false); // Error reading token, treat as logged out
+    } finally {
+      SplashScreen.hideAsync(); // Hide splash screen after checking
+    }
+  };
 
-    checkLoginStatus();
-  }, []);
+  checkLoginStatus();
+}, []);
 
   /**
    * Setup Firebase messaging listeners for notifications.
@@ -117,8 +136,12 @@ const RootNavigation = () => {
   }, []);
 
   if (isLogin === null) {
-    // Show a loading state (or splash screen) while checking login status
-    return null;
+    // Show a loading state while checking login status
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
 
   return (
@@ -136,3 +159,7 @@ const RootNavigation = () => {
 };
 
 export default RootNavigation;
+function verifyUserToken(token: string) {
+  throw new Error("Function not implemented.");
+}
+

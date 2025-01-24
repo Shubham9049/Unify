@@ -75,7 +75,7 @@ const Register = () => {
       const result = await response.json();
 
       if (response.ok) {
-        Alert.alert('Success', 'Registration successful!');
+        Alert.alert('Success', 'Registration successful please check mail and verify for login');
         router.push('/(auth)');
       } else {
         Alert.alert('Error', result.message || 'Registration failed.');
