@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -110,7 +111,12 @@ const ForgotPassword = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Forgot Password</Text>
+      <Image
+        source={{
+          uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
+        }}
+        style={styles.logo}
+      />
 
       {!isCodeSent && (
         <View style={styles.emailContainer}>
@@ -175,6 +181,13 @@ const ForgotPassword = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center" },
+  logo: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    alignSelf: "center",
+    marginBottom: 60,
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",

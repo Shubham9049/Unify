@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router"; // Import the router for navigation
@@ -79,7 +80,12 @@ const ResetPassword = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Reset Password</Text>
+      <Image
+        source={{
+          uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
+        }}
+        style={styles.logo}
+      />
 
       <View style={styles.inputContainer}>
         <TextInput
@@ -94,7 +100,7 @@ const ResetPassword = () => {
           style={styles.iconContainer}
         >
           <Ionicons
-            name={showPassword ? "eye" : "eye-off"}
+            name={showPassword ? "eye-off-outline" : "eye-outline"}
             size={24}
             color="#777"
           />
@@ -114,7 +120,7 @@ const ResetPassword = () => {
           style={styles.iconContainer}
         >
           <Ionicons
-            name={showConfirmPassword ? "eye" : "eye-off"}
+            name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
             size={24}
             color="#777"
           />
@@ -143,6 +149,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "center",
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    alignSelf: "center",
+    marginBottom: 60,
   },
   title: {
     fontSize: 24,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -41,6 +41,10 @@ const Index = () => {
   useWarmUpBrowser();
 
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+  // Add Facebook OAuth hook
+  const { startOAuthFlow: startFacebookOAuthFlow } = useOAuth({
+    strategy: "oauth_facebook",
+  });
 
   // Check if token exists
   useEffect(() => {
@@ -73,6 +77,24 @@ const Index = () => {
     } catch (err) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
+      console.error(JSON.stringify(err, null, 2));
+    }
+  }, []);
+
+  // Facebook login handler
+  const onPressFacebook = useCallback(async () => {
+    try {
+      const { createdSessionId, signIn, signUp, setActive } =
+        await startFacebookOAuthFlow({
+          redirectUrl: Linking.createURL("/(main)", { scheme: "myapp" }),
+        });
+
+      if (createdSessionId) {
+        setActive!({ session: createdSessionId });
+      } else {
+        // Handle signIn or signUp logic
+      }
+    } catch (err) {
       console.error(JSON.stringify(err, null, 2));
     }
   }, []);
@@ -201,6 +223,7 @@ const Index = () => {
         </TouchableOpacity>
       </View>
       <Button title="Sign in with Google" onPress={onPress} />
+      <Button title="Sign in with Facebook" onPress={onPressFacebook} />
     </SafeAreaView>
   );
 };
@@ -239,7 +262,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#007bff",
-    padding: 15,
+    padding: 10,
     borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
@@ -267,6 +290,7 @@ const styles = StyleSheet.create({
   registrationText: {
     color: "#666",
     fontSize: 14,
+    marginBottom: 15,
   },
   registerLink: {
     color: "#007bff",
@@ -275,3 +299,16 @@ const styles = StyleSheet.create({
 });
 
 export default Index;
+function startFacebookOAuthFlow(arg0: { redirectUrl: string }):
+  | { createdSessionId: any; signIn: any; signUp: any; setActive: any }
+  | PromiseLike<{
+      createdSessionId: any;
+      signIn: any;
+      signUp: any;
+      setActive: any;
+    }> {
+  throw new Error("Function not implemented.");
+}
+function useFacebookOAuth(): { startOAuthFlow: any } {
+  throw new Error("Function not implemented.");
+}

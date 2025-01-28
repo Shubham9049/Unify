@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons"; // For icons
@@ -26,6 +27,7 @@ const Register = () => {
   });
 
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     let valid = true;
@@ -58,6 +60,7 @@ const Register = () => {
 
   const handleRegister = async () => {
     if (!validate()) return;
+    setLoading(true);
 
     try {
       const response = await fetch(
@@ -155,8 +158,18 @@ const Register = () => {
       ) : null}
 
       {/* Register Button */}
-      <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-        <Text style={styles.registerButtonText}>Register</Text>
+      <TouchableOpacity
+        onPress={handleRegister}
+        style={styles.registerButton}
+        disabled={loading}
+      >
+        <Text style={styles.registerButtonText}>
+          {loading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.registerButtonText}>Create Account</Text>
+          )}
+        </Text>
       </TouchableOpacity>
 
       {/* Already have an account section */}
