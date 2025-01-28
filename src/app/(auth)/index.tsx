@@ -17,6 +17,8 @@ import * as WebBrowser from "expo-web-browser";
 import { Link } from "expo-router";
 import { useOAuth, useAuth, useClerk, useUser } from "@clerk/clerk-expo";
 import * as Linking from "expo-linking";
+import { AntDesign, FontAwesome } from "@expo/vector-icons";
+
 
 export const useWarmUpBrowser = () => {
   React.useEffect(() => {
@@ -222,8 +224,15 @@ const Index = () => {
           </Text>
         </TouchableOpacity>
       </View>
-      <Button title="Sign in with Google" onPress={onPress} />
-      <Button title="Sign in with Facebook" onPress={onPressFacebook} />
+      <TouchableOpacity style={styles.button2} onPress={onPress}>
+        <AntDesign name="google" size={24} color="red" />
+      <Text style={styles.Social_buttonText}>Sign in with Google</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.button2, styles.facebookButton]} onPress={onPressFacebook}>
+      <FontAwesome name="facebook" size={24} color="blue" />
+      <Text style={styles.Social_buttonText}>Sign in with Facebook</Text>
+      </TouchableOpacity>   
+      {/* <Button title="Sign in with Facebook" onPress={onPressFacebook} /> */}
     </SafeAreaView>
   );
 };
@@ -296,6 +305,25 @@ const styles = StyleSheet.create({
     color: "#007bff",
     fontSize: 14,
   },
+  Social_buttonText: {
+    color: "white",
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  facebookButton: {
+    backgroundColor: "#3b5998", // Facebook Blue
+  },
+  button2: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent:"center",
+    backgroundColor: "#4285F4", // Google Blue
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+    width: "100%",
+    
+  }
 });
 
 export default Index;
