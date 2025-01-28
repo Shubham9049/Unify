@@ -1,57 +1,56 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth, useClerk, useUser } from "@clerk/clerk-expo";
 
 export default function App() {
-  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-  const [notification, setNotification] = useState<Notifications.Notification | null>(null);
+  const { signOut } = useClerk();
+  const { userId } = useAuth();
+  const { user } = useUser(); // Fetch user details
+  const [authToken, setAuthToken] = useState("");
 
   useEffect(() => {
-    // Request permissions for push notifications
-    registerForPushNotificationsAsync().then((token) => setExpoPushToken(token));
-
-    // Listener for when the app is in the foreground
-    const foregroundSubscription = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification); // Notification state update
-    });
-
-    // Listener for when the user interacts with the notification (e.g., taps it)
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Notification response:', response);
-    });
-
-    // Cleanup on unmount
-    return () => {
-      foregroundSubscription.remove();
-      responseSubscription.remove();
+    const fetchAuthToken = async () => {
+      try {
+        if (userId) {
+          await AsyncStorage.setItem("authToken", userId); // Save userId as token
+        }
+        const token = await AsyncStorage.getItem("authToken");
+        console.log(token);
+        setAuthToken(token || "No token found");
+      } catch (error) {
+        console.error("Error fetching auth token:", error);
+      }
     };
+
+    fetchAuthToken();
   }, []);
 
-  const registerForPushNotificationsAsync = async () => {
-    // If the app is running on a physical device, request permission
-    if (Platform.OS === 'android') {
-      await Notifications.requestPermissionsAsync();
-    }
-
-    const token = await Notifications.getExpoPushTokenAsync();
-    console.log('Expo Push Token:', token.data);
-    return token.data;  // This is the token that you'll use to send notifications
-  };
-
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('authToken');
-    router.push('/(auth)'); // Navigate to login screen
+    try {
+      // Remove the auth token from AsyncStorage
+      await AsyncStorage.removeItem("authToken");
+      // Clerk's signOut functionality
+      await signOut();
+      // Navigate to the login screen
+      router.push("/(auth)");
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
+  const userName = user?.fullName || `${user?.firstName} ${user?.lastName}`;
+  const userEmail = user?.primaryEmailAddress?.emailAddress;
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg' }} // Replace with your logo URL
+          source={{
+            uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
+          }} // Replace with your logo URL
           style={styles.logo}
         />
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
@@ -61,9 +60,22 @@ export default function App() {
 
       {/* Welcome Message */}
       <View style={styles.content}>
-        <Text style={styles.welcomeText}>Welcome to Unify!</Text>
-        
+        <Text>Welcome, {userName}!</Text>
+        <Text>Email: {userEmail}</Text>
+        <Image
+          source={{ uri: user?.imageUrl }}
+          style={{ borderRadius: 10, width: 100, height: 100 }} // Add width and height for proper rendering
+        />
 
+        <View style={styles.credentialsContainer}>
+          <Text style={styles.credentialsText}>
+            <Text style={styles.label}>User ID:</Text>{" "}
+            {userId || "Not logged in"}
+          </Text>
+          <Text style={styles.credentialsText}>
+            <Text style={styles.label}>Auth Token:</Text> {authToken}
+          </Text>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -72,14 +84,14 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
   },
   logo: {
     width: 40,
@@ -87,23 +99,38 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   logoutButton: {
-    backgroundColor: '#FF6347',
+    backgroundColor: "#FF6347",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 5,
   },
   logoutButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
   },
   content: {
     padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   welcomeText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
+  },
+  credentialsContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 10,
+    width: "90%",
+  },
+  credentialsText: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 10,
+  },
+  label: {
+    fontWeight: "bold",
   },
 });

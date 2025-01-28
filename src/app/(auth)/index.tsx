@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,80 +7,93 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons'; // Using Expo vector icons
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Notifications from 'expo-notifications'; 
+  Button,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons"; // Using Expo vector icons
+import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as WebBrowser from "expo-web-browser";
+import { Link } from "expo-router";
+import { useOAuth, useAuth, useClerk, useUser } from "@clerk/clerk-expo";
+import * as Linking from "expo-linking";
 
-const Index = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [errors, setErrors] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    // Request permissions for notifications when the app is launched
-    const requestPermissions = async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        alert('Notification permissions are required for this feature.');
-      }
-    };
-  
-    requestPermissions();
-  
-    // Set up a handler for when notifications are received while the app is in the foreground
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,   // Show alert when notification is received
-        shouldPlaySound: true,   // Play sound for notification
-        shouldSetBadge: false,   // Optionally set a badge count for the app
-      }),
-    });
-  
-    // Listener for when a notification is received while the app is in the foreground
-    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-      console.log('Notification received in foreground:', notification);
-      // You can show an alert or log the notification here
-    });
-  
-    // Cleanup the listener when the component is unmounted
+export const useWarmUpBrowser = () => {
+  React.useEffect(() => {
+    // Warm up the android browser to improve UX
+    // https://docs.expo.dev/guides/authentication/#improving-user-experience
+    void WebBrowser.warmUpAsync();
     return () => {
-      notificationListener.remove();
+      void WebBrowser.coolDownAsync();
     };
   }, []);
-  
+};
 
-  const sendWelcomeNotification = async () => {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Welcome Back!",
-        body: "You're successfully logged in!",
-      },
-      trigger: null, // This triggers the notification immediately
-    });
-  };
+WebBrowser.maybeCompleteAuthSession();
+
+const Index = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [errors, setErrors] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+
+  useWarmUpBrowser();
+
+  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+
+  // Check if token exists
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem("authToken");
+      if (token) {
+        router.push("/(main)");
+      } else {
+        router.push("/(auth)");
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const onPress = React.useCallback(async () => {
+    try {
+      const { createdSessionId, signIn, signUp, setActive } =
+        await startOAuthFlow({
+          redirectUrl: Linking.createURL("/(main)", { scheme: "myapp" }),
+        });
+
+      // If sign in was successful, set the active session
+      if (createdSessionId) {
+        setActive!({ session: createdSessionId });
+      } else {
+        // Use signIn or signUp returned from startOAuthFlow
+        // for next steps, such as MFA
+      }
+    } catch (err) {
+      // See https://clerk.com/docs/custom-flows/error-handling
+      // for more info on error handling
+      console.error(JSON.stringify(err, null, 2));
+    }
+  }, []);
 
   const validateInputs = () => {
     let valid = true;
-    const newErrors = { email: '', password: '' };
+    const newErrors = { email: "", password: "" };
 
     if (!email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
       valid = false;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Invalid email format';
+      newErrors.email = "Invalid email format";
       valid = false;
     }
 
     if (!password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
       valid = false;
     } else if (password.length < 4) {
-      newErrors.password = 'Password must be at least 4 characters long';
+      newErrors.password = "Password must be at least 4 characters long";
       valid = false;
     }
 
@@ -94,31 +107,31 @@ const Index = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://app-database.onrender.com/user/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        "https://app-database.onrender.com/user/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await response.json();
 
-      if (data.status === 'ok') {
+      if (data.status === "ok") {
         // Store the token in Async Storage
-        await AsyncStorage.setItem('authToken', data.token);
-
-        // Trigger a notification
-        sendWelcomeNotification();
+        await AsyncStorage.setItem("authToken", data.token);
 
         // Navigate to the main screen
-        router.push('/(main)');
+        router.push("/(main)");
       } else {
-        alert(data.msg || 'Login failed');
+        alert(data.msg || "Login failed");
       }
     } catch (error) {
-      console.error('Login error:', error);
-      alert('Something went wrong. Please try again later.');
+      console.error("Login error:", error);
+      alert("Something went wrong. Please try again later.");
     } finally {
       setLoading(false); // Stop loading after the login attempt
     }
@@ -128,7 +141,9 @@ const Index = () => {
     <SafeAreaView style={styles.container}>
       {/* UI Components */}
       <Image
-        source={{ uri: 'https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg' }}
+        source={{
+          uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
+        }}
         style={styles.logo}
       />
       <TextInput
@@ -139,7 +154,9 @@ const Index = () => {
         value={email}
         onChangeText={setEmail}
       />
-      {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+      {errors.email ? (
+        <Text style={styles.errorText}>{errors.email}</Text>
+      ) : null}
       <View style={styles.passwordContainer}>
         <TextInput
           placeholder="Password"
@@ -153,15 +170,17 @@ const Index = () => {
           style={styles.iconContainer}
         >
           <Ionicons
-            name={passwordVisible ? 'eye-off-outline' : 'eye-outline'}
+            name={passwordVisible ? "eye-off-outline" : "eye-outline"}
             size={24}
             color="#666"
           />
         </TouchableOpacity>
       </View>
-      {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
-      <TouchableOpacity>
-        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+      {errors.password ? (
+        <Text style={styles.errorText}>{errors.password}</Text>
+      ) : null}
+      <TouchableOpacity onPress={() => router.push("/(auth)/forgot-password")}>
+        <Text style={styles.forgotPasswordText}>Forgot/Reset Password?</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={handleLogin} style={styles.button}>
         {loading ? (
@@ -175,12 +194,13 @@ const Index = () => {
         <TouchableOpacity>
           <Text
             style={styles.registerLink}
-            onPress={() => router.push('/(auth)/register')}
+            onPress={() => router.push("/(auth)/register")}
           >
             Register
           </Text>
         </TouchableOpacity>
       </View>
+      <Button title="Sign in with Google" onPress={onPress} />
     </SafeAreaView>
   );
 };
@@ -189,67 +209,67 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
   },
   logo: {
     width: 150,
     height: 150,
-    borderRadius:75,
-    alignSelf: 'center',
+    borderRadius: 75,
+    alignSelf: "center",
     marginBottom: 60,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
   },
   inputError: {
-    borderColor: 'red',
+    borderColor: "red",
   },
   passwordContainer: {
-    position: 'relative',
+    position: "relative",
   },
   iconContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
   },
   button: {
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
     padding: 15,
     borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 10,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
   },
   errorText: {
-    color: 'red',
+    color: "red",
     fontSize: 12,
     marginBottom: 5,
   },
   forgotPasswordText: {
-    color: '#007bff',
-    textAlign: 'center',
+    color: "#007bff",
+    textAlign: "center",
     marginTop: 10,
   },
   registrationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 20,
   },
   registrationText: {
-    color: '#666',
+    color: "#666",
     fontSize: 14,
   },
   registerLink: {
-    color: '#007bff',
+    color: "#007bff",
     fontSize: 14,
   },
 });
