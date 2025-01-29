@@ -1,48 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth, useClerk, useUser } from "@clerk/clerk-expo";
+import { DrawerActions } from "@react-navigation/native";
 
 export default function App() {
-  const { signOut } = useClerk();
   const { userId } = useAuth();
-  const { user } = useUser(); // Fetch user details
+  const { user } = useUser();
   const [authToken, setAuthToken] = useState("");
+  const [storedUsername, setStoredUsername] = useState("");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchAuthToken = async () => {
+    const fetchAuthData = async () => {
       try {
         if (userId) {
-          await AsyncStorage.setItem("authToken", userId); // Save userId as token
+          await AsyncStorage.setItem("authToken", userId);
         }
         const token = await AsyncStorage.getItem("authToken");
-        console.log(token);
+        const username = await AsyncStorage.getItem("username");
+        const image = await AsyncStorage.getItem("profileImage");
         setAuthToken(token || "No token found");
+        setStoredUsername(username || "Guest");
+        setProfileImage(image);
       } catch (error) {
-        console.error("Error fetching auth token:", error);
+        console.error("Error fetching auth data:", error);
       }
     };
 
-    fetchAuthToken();
+    fetchAuthData();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      // Remove the auth token from AsyncStorage
-      await AsyncStorage.removeItem("authToken");
-      // Clerk's signOut functionality
-      await signOut();
-      // Navigate to the login screen
-      router.push("/(auth)");
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
-  };
-  const userName = user?.fullName || `${user?.firstName} ${user?.lastName}`;
-  const userEmail = user?.primaryEmailAddress?.emailAddress;
-
+  const userName = user?.fullName || storedUsername;
+  const displayImage =
+    user?.imageUrl ||
+    (profileImage ? `https://app-database.onrender.com${profileImage}` : null);
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -50,33 +46,36 @@ export default function App() {
         <Image
           source={{
             uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
-          }} // Replace with your logo URL
+          }}
           style={styles.logo}
         />
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
+        <TouchableOpacity
+          style={styles.profileContainer}
+          onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
+        >
+          {displayImage ? (
+            <Image source={{ uri: displayImage }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.profilePlaceholder}>
+              <Text style={styles.profileInitial}>
+                {userName.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* Welcome Message */}
-      <View style={styles.content}>
-        <Text>Welcome, {userName}!</Text>
-        <Text>Email: {userEmail}</Text>
-        <Image
-          source={{ uri: user?.imageUrl }}
-          style={{ borderRadius: 10, width: 100, height: 100 }} // Add width and height for proper rendering
-        />
-
-        <View style={styles.credentialsContainer}>
-          <Text style={styles.credentialsText}>
-            <Text style={styles.label}>User ID:</Text>{" "}
-            {userId || "Not logged in"}
-          </Text>
-          <Text style={styles.credentialsText}>
-            <Text style={styles.label}>Auth Token:</Text> {authToken}
-          </Text>
-        </View>
-      </View>
+      <Text
+        style={{
+          flex: 1,
+          fontSize: 30,
+          textAlign: "center",
+          marginTop: 30,
+        }}
+      >
+        Welcome
+      </Text>
+      {/* <View>show the image here</View> */}
     </SafeAreaView>
   );
 }
@@ -98,39 +97,26 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-  logoutButton: {
-    backgroundColor: "#FF6347",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 5,
+  profileContainer: {
+    borderRadius: 20,
+    overflow: "hidden",
   },
-  logoutButtonText: {
-    color: "#fff",
-    fontSize: 16,
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
-  content: {
-    padding: 20,
+  profilePlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFD700",
     justifyContent: "center",
     alignItems: "center",
   },
-  welcomeText: {
-    fontSize: 24,
+  profileInitial: {
+    fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 20,
-  },
-  credentialsContainer: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 10,
-    width: "90%",
-  },
-  credentialsText: {
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 10,
-  },
-  label: {
-    fontWeight: "bold",
+    color: "#000",
   },
 });

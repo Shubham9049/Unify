@@ -19,7 +19,6 @@ import { useOAuth, useAuth, useClerk, useUser } from "@clerk/clerk-expo";
 import * as Linking from "expo-linking";
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
 
-
 export const useWarmUpBrowser = () => {
   React.useEffect(() => {
     // Warm up the android browser to improve UX
@@ -147,7 +146,9 @@ const Index = () => {
       if (data.status === "ok") {
         // Store the token in Async Storage
         await AsyncStorage.setItem("authToken", data.token);
-
+        await AsyncStorage.setItem("username", data.user.username);
+        await AsyncStorage.setItem("email", data.user.email);
+        await AsyncStorage.setItem("profileImage", data.user.image);
         // Navigate to the main screen
         router.push("/(main)");
       } else {
@@ -226,12 +227,15 @@ const Index = () => {
       </View>
       <TouchableOpacity style={styles.button2} onPress={onPress}>
         <AntDesign name="google" size={24} color="red" />
-      <Text style={styles.Social_buttonText}>Sign in with Google</Text>
+        <Text style={styles.Social_buttonText}>Sign in with Google</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.button2, styles.facebookButton]} onPress={onPressFacebook}>
-      <FontAwesome name="facebook" size={24} color="blue" />
-      <Text style={styles.Social_buttonText}>Sign in with Facebook</Text>
-      </TouchableOpacity>   
+      <TouchableOpacity
+        style={[styles.button2, styles.facebookButton]}
+        onPress={onPressFacebook}
+      >
+        <FontAwesome name="facebook" size={24} color="blue" />
+        <Text style={styles.Social_buttonText}>Sign in with Facebook</Text>
+      </TouchableOpacity>
       {/* <Button title="Sign in with Facebook" onPress={onPressFacebook} /> */}
     </SafeAreaView>
   );
@@ -316,14 +320,13 @@ const styles = StyleSheet.create({
   button2: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent:"center",
+    justifyContent: "center",
     backgroundColor: "#4285F4", // Google Blue
     padding: 10,
     borderRadius: 5,
     marginVertical: 10,
     width: "100%",
-    
-  }
+  },
 });
 
 export default Index;
