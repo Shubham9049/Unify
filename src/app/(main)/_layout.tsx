@@ -13,6 +13,7 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
   const [authToken, setAuthToken] = useState("");
   const [storedUsername, setStoredUsername] = useState("");
   const [storedEmail, setStoredEmail] = useState("");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAuthData = async () => {
@@ -23,9 +24,11 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
         const token = await AsyncStorage.getItem("authToken");
         const username = await AsyncStorage.getItem("username");
         const email = await AsyncStorage.getItem("email");
+        const image = await AsyncStorage.getItem("profileImage");
         setAuthToken(token || "No token found");
         setStoredUsername(username || "Guest");
         setStoredEmail(email || "No email found");
+        setProfileImage(image);
       } catch (error) {
         console.error("Error fetching auth data:", error);
       }
@@ -39,6 +42,7 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
       await AsyncStorage.removeItem("authToken");
       await AsyncStorage.removeItem("username");
       await AsyncStorage.removeItem("email");
+      await AsyncStorage.removeItem("profileImage");
       await signOut();
       router.push("/(auth)");
     } catch (error) {
@@ -48,13 +52,16 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
 
   const userName = user?.fullName || storedUsername;
   const userEmail = user?.primaryEmailAddress?.emailAddress || storedEmail;
+  const displayImage =
+    user?.imageUrl ||
+    (profileImage ? `https://app-database.onrender.com${profileImage}` : null);
 
   return (
     <View style={styles.drawerContainer}>
       <View style={styles.profileSection}>
         {/* Display user image or first letter of the name */}
-        {user?.imageUrl ? (
-          <Image source={{ uri: user.imageUrl }} style={styles.profileImage} />
+        {displayImage ? (
+          <Image source={{ uri: displayImage }} style={styles.profileImage} />
         ) : (
           <View style={styles.profilePlaceholder}>
             <Text style={styles.profileInitial}>
