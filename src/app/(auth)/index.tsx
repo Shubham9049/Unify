@@ -149,6 +149,8 @@ const Index = () => {
         await AsyncStorage.setItem("username", data.user.username);
         await AsyncStorage.setItem("email", data.user.email);
         await AsyncStorage.setItem("profileImage", data.user.image);
+        await AsyncStorage.setItem("mongoId", data.user._id)
+        console.log(data.user._id)
         // Navigate to the main screen
         router.push("/(main)");
       } else {
@@ -160,6 +162,7 @@ const Index = () => {
     } finally {
       setLoading(false); // Stop loading after the login attempt
     }
+    
   };
 
   return (
