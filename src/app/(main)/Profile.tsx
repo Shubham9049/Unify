@@ -74,7 +74,7 @@ export default function Profile() {
         formData.append("image", blob, "profile.jpg"); // Correct format
   
         await axios.post(
-          `https://app-database.onrender.com/user/${userId}/upload-image`,
+          `https://app-database.onrender.com/user//${userId}`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
