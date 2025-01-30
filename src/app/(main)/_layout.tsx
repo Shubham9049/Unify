@@ -73,6 +73,11 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
         <Text style={styles.userName}>{userName}</Text>
         <Text style={styles.userEmail}>{userEmail}</Text>
 
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.drawerButton}>
+        <Text style={styles.drawerButtonText}>Profile</Text>
+      </TouchableOpacity>
+
+
         {/* Logout button */}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Text style={styles.logoutText}>Logout</Text>
@@ -91,6 +96,7 @@ export default function RootLayout() {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
       <Drawer.Screen name="index" options={{ title: "Home" }} />
+      <Drawer.Screen name="Profile" options={{ title: "Profile" }} />
     </Drawer>
   );
 }
@@ -148,5 +154,18 @@ const styles = StyleSheet.create({
   logoutText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  drawerButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#2196F3",
+    borderRadius: 5,
+    marginBottom: 10,
+    alignSelf: "stretch",
+  },
+  drawerButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
