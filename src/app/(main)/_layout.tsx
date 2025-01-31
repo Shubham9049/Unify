@@ -52,9 +52,7 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
 
   const userName = user?.fullName || storedUsername;
   const userEmail = user?.primaryEmailAddress?.emailAddress || storedEmail;
-  const displayImage =
-    user?.imageUrl ||
-    (profileImage ? `https://app-database.onrender.com${profileImage}` : null);
+  const displayImage = user?.imageUrl || profileImage || null;
 
   return (
     <View style={styles.drawerContainer}>
@@ -73,10 +71,12 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
         <Text style={styles.userName}>{userName}</Text>
         <Text style={styles.userEmail}>{userEmail}</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.drawerButton}>
-        <Text style={styles.drawerButtonText}>Profile</Text>
-      </TouchableOpacity>
-
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Profile")}
+          style={styles.drawerButton}
+        >
+          <Text style={styles.drawerButtonText}>Profile</Text>
+        </TouchableOpacity>
 
         {/* Logout button */}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>

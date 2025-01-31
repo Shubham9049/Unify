@@ -36,9 +36,7 @@ export default function App() {
   }, []);
 
   const userName = user?.fullName || storedUsername;
-  const displayImage =
-    user?.imageUrl ||
-    (profileImage ? `https://app-database.onrender.com${profileImage}` : null);
+  const displayImage = user?.imageUrl || profileImage || null;
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
