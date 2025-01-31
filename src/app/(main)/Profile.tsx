@@ -201,21 +201,40 @@ export default function Profile() {
         {!isGoogleOrFacebookUser && (
           <View style={styles.Editcontainer}>
             <View style={styles.card}>
-              <Text style={styles.label}>Gender</Text>
-              {Gender ? (
-                <Text style={styles.input}>{Gender}</Text>
-              ) : (
-                <Picker
-                  selectedValue={Gender}
-                  style={styles.input}
-                  onValueChange={(itemValue) => setGender(itemValue)}
-                  enabled={editable}
-                >
-                  <Picker.Item label="Select Gender" value="" />
-                  <Picker.Item label="Male" value="Male" />
-                  <Picker.Item label="Female" value="Female" />
-                </Picker>
-              )}
+            <Text style={styles.label}>Gender</Text>
+            <View style={styles.genderContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.genderBox,
+                  Gender === "Male" && styles.selectedGender,  // Apply glow effect if 'Male' is selected
+                ]}
+                onPress={() => {
+                  if (editable) {  // Allow gender selection if profile is in editable state
+                    setGender("Male");
+                  }
+                }}
+                disabled={!editable} // Disable if not in editing mode
+              >
+                <Text style={styles.genderText}>Male</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.genderBox,
+                  Gender === "Female" && styles.selectedGender,  // Apply glow effect if 'Female' is selected
+                ]}
+                onPress={() => {
+                  if (editable) {  // Allow gender selection if profile is in editable state
+                    setGender("Female");
+                  }
+                }}
+                disabled={!editable} // Disable if not in editing mode
+              >
+                <Text style={styles.genderText}>Female</Text>
+              </TouchableOpacity>
+            </View>
+
+
 
               <Text style={styles.label}>Nationality</Text>
               <Picker
@@ -389,5 +408,31 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  genderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 15,
+  },
+  genderBox: {
+    flex: 1,
+    paddingVertical: 15,
+    borderWidth: 2,
+    borderRadius: 8,
+    borderColor: "#ccc",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f9f9f9",
+    marginHorizontal: 5,
+  },
+  selectedGender: {
+    borderColor: "#007BFF",  // Blue border for the selected option
+    backgroundColor: "#e0f7fa", // Light blue background when selected
+    elevation: 4,  // Adds a slight shadow/glow effect
+  },
+  genderText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
   },
 });
