@@ -8,6 +8,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Button,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Platform,
+  Keyboard,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons"; // Using Expo vector icons
@@ -18,6 +23,7 @@ import { Link } from "expo-router";
 import { useOAuth, useAuth, useClerk, useUser } from "@clerk/clerk-expo";
 import * as Linking from "expo-linking";
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
+import axios from "axios";
 
 export const useWarmUpBrowser = () => {
   React.useEffect(() => {
@@ -130,18 +136,12 @@ const Index = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(
+      const response = await axios.post(
         "https://app-database.onrender.com/user/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
+        { email, password }
       );
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.status === "ok") {
         // Store the token in Async Storage
@@ -149,8 +149,7 @@ const Index = () => {
         await AsyncStorage.setItem("username", data.user.username);
         await AsyncStorage.setItem("email", data.user.email);
         await AsyncStorage.setItem("profileImage", data.user.image);
-        await AsyncStorage.setItem("mongoId", data.user._id)
-        console.log(data.user._id)
+        await AsyncStorage.setItem("mongoId", data.user._id);
         // Navigate to the main screen
         router.push("/(main)");
       } else {
@@ -160,189 +159,233 @@ const Index = () => {
       console.error("Login error:", error);
       alert("Something went wrong. Please try again later.");
     } finally {
-      setLoading(false); // Stop loading after the login attempt
+      setLoading(false);
     }
-    
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* UI Components */}
-      <Image
-        source={{
-          uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
-        }}
-        style={styles.logo}
-      />
-      <TextInput
-        placeholder="Email"
-        style={[styles.input, errors.email ? styles.inputError : null]}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-      {errors.email ? (
-        <Text style={styles.errorText}>{errors.email}</Text>
-      ) : null}
-      <View style={styles.passwordContainer}>
-        <TextInput
-          placeholder="Password"
-          style={[styles.input, errors.password ? styles.inputError : null]}
-          secureTextEntry={!passwordVisible}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity
-          onPress={() => setPasswordVisible(!passwordVisible)}
-          style={styles.iconContainer}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "position" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
         >
-          <Ionicons
-            name={passwordVisible ? "eye-off-outline" : "eye-outline"}
-            size={24}
-            color="#666"
-          />
-        </TouchableOpacity>
-      </View>
-      {errors.password ? (
-        <Text style={styles.errorText}>{errors.password}</Text>
-      ) : null}
-      <TouchableOpacity onPress={() => router.push("/(auth)/forgot-password")}>
-        <Text style={styles.forgotPasswordText}>Forgot/Reset Password?</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={handleLogin} style={styles.button}>
-        {loading ? (
-          <ActivityIndicator size="small" color="#FFFFFF" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
-      </TouchableOpacity>
-      <View style={styles.registrationContainer}>
-        <Text style={styles.registrationText}>Don't have an account?</Text>
-        <TouchableOpacity>
-          <Text
-            style={styles.registerLink}
-            onPress={() => router.push("/(auth)/register")}
-          >
-            Register
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <TouchableOpacity style={styles.button2} onPress={onPress}>
-        <AntDesign name="google" size={24} color="red" />
-        <Text style={styles.Social_buttonText}>Sign in with Google</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button2, styles.facebookButton]}
-        onPress={onPressFacebook}
-      >
-        <FontAwesome name="facebook" size={24} color="blue" />
-        <Text style={styles.Social_buttonText}>Sign in with Facebook</Text>
-      </TouchableOpacity>
-      {/* <Button title="Sign in with Facebook" onPress={onPressFacebook} /> */}
-    </SafeAreaView>
+          {/* Top Blue Section */}
+          <View style={styles.topBackground}>
+            {/* Logo */}
+            <Image
+              source={require("../../assets/images/logo.png")} // Replace with your logo URL
+              style={styles.logo}
+            />
+          </View>
+
+          {/* Bottom Gray Section */}
+          <View style={styles.bottomSection}>
+            <View style={styles.loginCard}>
+              <Text style={styles.loginTitle}>Login Account</Text>
+
+              {/* Email Input */}
+              <TextInput
+                placeholder="User Name or E-mail"
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+              />
+
+              {/* Password Input */}
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  placeholder="Password"
+                  style={styles.input}
+                  secureTextEntry={!passwordVisible}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setPasswordVisible(!passwordVisible)}
+                  style={styles.iconContainer}
+                >
+                  <Ionicons
+                    name={passwordVisible ? "eye-off-outline" : "eye-outline"}
+                    size={24}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Forgot Password */}
+              <TouchableOpacity
+                onPress={() => router.push("/(auth)/forgot-password")}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+
+              {/* Login Button */}
+              <TouchableOpacity onPress={handleLogin} style={styles.button}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>LOGIN</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Social Login */}
+              <View style={styles.socialLoginContainer}>
+                <TouchableOpacity style={styles.socialButton}>
+                  <AntDesign
+                    name="google"
+                    size={24}
+                    color="red"
+                    onPress={onPress}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.socialButton}>
+                  <FontAwesome
+                    name="facebook"
+                    size={24}
+                    color="blue"
+                    onPress={onPressFacebook}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Register Section */}
+              <View style={styles.registrationContainer}>
+                <Text style={styles.registrationText}>
+                  Don't have an account?
+                </Text>
+                <TouchableOpacity>
+                  <Text
+                    style={styles.registerLink}
+                    onPress={() => router.push("/(auth)/register")}
+                  >
+                    REGISTER
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
+  topBackground: {
+    width: "100%",
+    height: "57%", // 2/3 of the screen
+    backgroundColor: "#007BFF",
+    borderBottomLeftRadius: 50, // Large border radius for rounded effect
+    borderBottomRightRadius: 50,
+    alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
   },
   logo: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    alignSelf: "center",
-    marginBottom: 60,
+    position: "absolute",
+    top: 40,
+    width: 140,
+    height: 140,
+    resizeMode: "contain",
+    borderRadius: 70,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
+  bottomSection: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loginCard: {
+    width: "80%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
+    alignItems: "center",
+    position: "absolute",
+    top: "-18%", // Moves the login card upwards
+    transform: [{ translateY: -50 }],
+    marginTop: -30,
+  },
+  loginTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 10,
   },
-  inputError: {
-    borderColor: "red",
+  input: {
+    width: "100%",
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    marginBottom: 15,
   },
   passwordContainer: {
-    position: "relative",
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    borderColor: "#ddd",
+    borderRadius: 8,
+    marginBottom: 15,
   },
   iconContainer: {
     position: "absolute",
+    right: 15,
     top: 10,
-    right: 10,
+  },
+  forgotPasswordText: {
+    alignSelf: "flex-end",
+    color: "#007BFF",
+    fontSize: 14,
+    marginBottom: 10,
   },
   button: {
-    backgroundColor: "#007bff",
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
+    width: "100%",
+    backgroundColor: "#007BFF",
+    padding: 12,
+    borderRadius: 8,
     alignItems: "center",
-    marginTop: 10,
+    marginBottom: 10,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
   },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginBottom: 5,
+  socialLoginContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "50%",
+    marginVertical: 10,
   },
-  forgotPasswordText: {
-    color: "#007bff",
-    textAlign: "center",
-    marginTop: 10,
+  socialButton: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#eee",
   },
   registrationContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 20,
+    marginTop: 10,
   },
   registrationText: {
-    color: "#666",
     fontSize: 14,
-    marginBottom: 15,
+    color: "#555",
   },
   registerLink: {
-    color: "#007bff",
     fontSize: 14,
-  },
-  Social_buttonText: {
-    color: "white",
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  facebookButton: {
-    backgroundColor: "#3b5998", // Facebook Blue
-  },
-  button2: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#4285F4", // Google Blue
-    padding: 10,
-    borderRadius: 5,
-    marginVertical: 10,
-    width: "100%",
+    color: "#007BFF",
+    fontWeight: "bold",
+    marginLeft: 5,
   },
 });
 
 export default Index;
-function startFacebookOAuthFlow(arg0: { redirectUrl: string }):
-  | { createdSessionId: any; signIn: any; signUp: any; setActive: any }
-  | PromiseLike<{
-      createdSessionId: any;
-      signIn: any;
-      signUp: any;
-      setActive: any;
-    }> {
-  throw new Error("Function not implemented.");
-}
-function useFacebookOAuth(): { startOAuthFlow: any } {
-  throw new Error("Function not implemented.");
-}

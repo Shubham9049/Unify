@@ -10,6 +10,9 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  TouchableWithoutFeedback,
+  ScrollView,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -110,120 +113,175 @@ const ForgotPassword = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Image
-        source={{
-          uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
-        }}
-        style={styles.logo}
-      />
-
-      {!isCodeSent && (
-        <View style={styles.emailContainer}>
-          <TextInput
-            placeholder="Enter your email"
-            style={styles.input}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TouchableOpacity
-            onPress={handleForgotPassword}
-            style={styles.button}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text style={styles.buttonText}>Send OTP</Text>
-              )}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {isCodeSent && (
-        <>
-          <View style={styles.codeContainer}>
-            {code.map((digit, index) => (
-              <TextInput
-                key={index}
-                style={styles.codeInput}
-                keyboardType="numeric"
-                maxLength={1}
-                value={digit}
-                onChangeText={(text) => handleCodeChange(text, index)}
-                ref={(ref) => (codeRefs.current[index] = ref)} // Assign ref to each input
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "position" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <SafeAreaView style={styles.container}>
+            {/* Logo Section */}
+            <View style={styles.topBackground}>
+              <Image
+                source={{
+                  uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
+                }}
+                style={styles.logo}
               />
-            ))}
-          </View>
+            </View>
 
-          <TouchableOpacity
-            onPress={handleVerifyCode}
-            style={styles.button}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text style={styles.buttonText}>Veify OTP</Text>
-              )}
-            </Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </SafeAreaView>
+            {/* Email Input & OTP Send */}
+            {!isCodeSent && (
+              <View style={styles.formContainer}>
+                <Text style={styles.title}>Forgot Password</Text>
+
+                {/* Email Input */}
+                <TextInput
+                  placeholder="Enter your email"
+                  style={styles.input}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+
+                {/* Send OTP Button */}
+                <TouchableOpacity
+                  onPress={handleForgotPassword}
+                  style={styles.button}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.buttonText}>Send OTP</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* OTP Input */}
+            {isCodeSent && (
+              <View style={styles.formContainer}>
+                <Text style={styles.title}>Enter OTP</Text>
+
+                {/* OTP Code Inputs */}
+                <View style={styles.codeContainer}>
+                  {code.map((digit, index) => (
+                    <TextInput
+                      key={index}
+                      style={styles.codeInput}
+                      keyboardType="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChangeText={(text) => handleCodeChange(text, index)}
+                      ref={(ref) => (codeRefs.current[index] = ref)} // Assign ref to each input
+                    />
+                  ))}
+                </View>
+
+                {/* Verify OTP Button */}
+                <TouchableOpacity
+                  onPress={handleVerifyCode}
+                  style={styles.button}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.buttonText}>Verify OTP</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+          </SafeAreaView>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center" },
+  container: {
+    flex: 1,
+    backgroundColor: "#F9F9F9",
+    alignItems: "center",
+  },
+  topBackground: {
+    width: "100%",
+    height: "60%",
+    backgroundColor: "#007BFF",
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   logo: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    alignSelf: "center",
-    marginBottom: 60,
+    width: 140,
+    height: 140,
+    resizeMode: "contain",
+    borderRadius: 70,
+    position: "absolute",
+    top: 40,
+  },
+  formContainer: {
+    width: "85%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
+    alignItems: "center",
+    marginTop: -120, // Adjusted to avoid overlap
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
+    marginBottom: 15,
   },
-  emailContainer: { marginBottom: 20 },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
+    width: "100%",
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#F3F3F3",
     marginBottom: 10,
   },
   button: {
-    backgroundColor: "#007bff",
-    padding: 15,
-    borderRadius: 5,
+    width: "100%",
+    padding: 12,
+    backgroundColor: "#007BFF",
+    borderRadius: 8,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 15,
   },
-  buttonText: { color: "#fff", fontSize: 16 },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   codeContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    width: "100%",
     marginBottom: 20,
   },
   codeInput: {
-    width: 50,
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
+    width: "15%",
+    padding: 12,
+    backgroundColor: "#F3F3F3",
     textAlign: "center",
-    fontSize: 20,
-    marginBottom: 10,
+    borderRadius: 8,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    alignSelf: "flex-start",
   },
 });
 
