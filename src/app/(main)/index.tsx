@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useNavigation } from "expo-router";
+import { useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth, useClerk, useUser } from "@clerk/clerk-expo";
 import { DrawerActions } from "@react-navigation/native";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useDispatch, useSelector } from "react-redux";
+import { setProfileImage } from "../../redux/profileSlice"; // Adjust the import path for your slice
 
 export default function App() {
   const { userId } = useAuth();
   const { user } = useUser();
+  const navigation = useNavigation();
+
+  // Redux state
+  const dispatch = useDispatch();
+  const profileImage = useSelector((state: any) => state.profile.profileImage);
   const [authToken, setAuthToken] = useState("");
   const [storedUsername, setStoredUsername] = useState("");
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-
-  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchAuthData = async () => {
@@ -24,19 +28,25 @@ export default function App() {
         const token = await AsyncStorage.getItem("authToken");
         const username = await AsyncStorage.getItem("username");
         const image = await AsyncStorage.getItem("profileImage");
+
         setAuthToken(token || "No token found");
         setStoredUsername(username || "Guest");
-        setProfileImage(image);
+
+        // Check if profile image exists in AsyncStorage and update Redux state
+        if (image) {
+          dispatch(setProfileImage(image));
+        }
       } catch (error) {
         console.error("Error fetching auth data:", error);
       }
     };
 
     fetchAuthData();
-  }, []);
+  }, [userId, dispatch]);
 
   const userName = user?.fullName || storedUsername;
   const displayImage = user?.imageUrl || profileImage || null;
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -73,7 +83,6 @@ export default function App() {
       >
         Welcome
       </Text>
-      {/* <View>show the image here</View> */}
     </SafeAreaView>
   );
 }

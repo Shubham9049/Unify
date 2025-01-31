@@ -5,6 +5,8 @@ import { DrawerContentComponentProps } from "@react-navigation/drawer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useNavigation } from "expo-router";
 import { useAuth, useClerk, useUser } from "@clerk/clerk-expo";
+import { useDispatch, useSelector } from "react-redux";
+import { setProfileImage } from "../../redux/profileSlice";
 
 function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
   const { signOut } = useClerk();
@@ -13,7 +15,8 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
   const [authToken, setAuthToken] = useState("");
   const [storedUsername, setStoredUsername] = useState("");
   const [storedEmail, setStoredEmail] = useState("");
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const dispatch = useDispatch();
+  const profileImage = useSelector((state: any) => state.profile.profileImage);
 
   useEffect(() => {
     const fetchAuthData = async () => {
@@ -28,14 +31,17 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
         setAuthToken(token || "No token found");
         setStoredUsername(username || "Guest");
         setStoredEmail(email || "No email found");
-        setProfileImage(image);
+        // Check if profile image exists in AsyncStorage and update Redux state
+        if (image) {
+          dispatch(setProfileImage(image));
+        }
       } catch (error) {
         console.error("Error fetching auth data:", error);
       }
     };
 
     fetchAuthData();
-  }, []);
+  }, [dispatch]);
 
   const handleLogout = async () => {
     try {

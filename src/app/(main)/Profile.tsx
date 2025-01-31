@@ -14,6 +14,9 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import { MaterialIcons } from "@expo/vector-icons";
+import { setProfileImage } from "../../redux/profileSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/src/redux/store";
 
 export default function Profile() {
   const { user } = useUser();
@@ -25,7 +28,8 @@ export default function Profile() {
     phone: "",
   });
   //   console.log(user)
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const dispatch = useDispatch();
+  const { profileImage } = useSelector((state: RootState) => state.profile);
   const [editable, setEditable] = useState(false);
   const [nationality, setNationality] = useState("");
   const [phone, setPhone] = useState("");
@@ -58,13 +62,16 @@ export default function Profile() {
         setProfileImage(image);
         setUserID(StoredUserId);
         setGender(storedGender || "");
+        if (image) {
+          dispatch(setProfileImage(image)); // Set profile image from AsyncStorage
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
     };
 
     fetchUserData();
-  }, [userId]);
+  }, [dispatch]);
 
   const handleProfileUpdate = async () => {
     try {
@@ -114,30 +121,34 @@ export default function Profile() {
 
     if (!result.canceled && result.assets.length > 0) {
       const selectedImage = result.assets[0].uri;
-      setProfileImage(selectedImage);
+      updateProfileImage(selectedImage);
+    }
+  };
 
-      try {
-        const formData = new FormData();
-        formData.append("image", {
-          uri: selectedImage,
-          name: "profile.jpg",
-          type: "image/jpeg",
-        } as any);
+  const updateProfileImage = async (selectedImage: string) => {
+    dispatch(setProfileImage(selectedImage)); // Update Redux store
+    await AsyncStorage.setItem("profileImage", selectedImage); // Persist to AsyncStorage
 
-        await axios.post(
-          `https://app-database.onrender.com/user/upload-profile-image/${userID}`,
-          formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
-        );
+    // Send to backend as well
+    const formData = new FormData();
+    formData.append("image", {
+      uri: selectedImage,
+      name: "profile.jpg",
+      type: "image/jpeg",
+    } as any);
 
-        await AsyncStorage.setItem("profileImage", selectedImage);
-      } catch (error) {
-        console.error("Error uploading profile image:", error);
-        Alert.alert(
-          "Upload Failed",
-          "There was an issue uploading your profile picture."
-        );
-      }
+    try {
+      await axios.post(
+        `https://app-database.onrender.com/user/upload-profile-image/${userID}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+    } catch (error) {
+      console.error("Error uploading profile image:", error);
+      Alert.alert(
+        "Upload Failed",
+        "There was an issue uploading your profile picture."
+      );
     }
   };
 

@@ -6,6 +6,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
 import { Slot } from "expo-router";
 import { tokenCache } from "./cache";
+// Redux Imports
+import { Provider, useDispatch, useSelector } from "react-redux";
+import { store } from "../redux/store";
 
 // Prevent the splash screen from hiding until we explicitly hide it
 SplashScreen.preventAutoHideAsync();
@@ -46,15 +49,17 @@ const RootNavigation = () => {
   }
 
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-      <ClerkLoaded>
-        <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Slot />
-        </Stack>
-        {hasToken !== null && <AuthRedirect hasToken={hasToken} />}
-      </ClerkLoaded>
-    </ClerkProvider>
+    <Provider store={store}>
+      <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+        <ClerkLoaded>
+          <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Slot />
+          </Stack>
+          {hasToken !== null && <AuthRedirect hasToken={hasToken} />}
+        </ClerkLoaded>
+      </ClerkProvider>
+    </Provider>
   );
 };
 
