@@ -49,9 +49,7 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
       await AsyncStorage.removeItem("username");
       await AsyncStorage.removeItem("email");
       await AsyncStorage.removeItem("profileImage");
-      await AsyncStorage.removeItem("nationality");
-      await AsyncStorage.removeItem("phone");
-      await AsyncStorage.removeItem("gender");
+      await AsyncStorage.removeItem("mongoId");
       await signOut();
       router.push("/(auth)");
     } catch (error) {

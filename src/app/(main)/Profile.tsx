@@ -5,65 +5,77 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
   Alert,
+  TextInput,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import axios from "axios";
-import { Picker } from "@react-native-picker/picker";
-import { MaterialIcons } from "@expo/vector-icons";
-import { setProfileImage } from "../../redux/profileSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/src/redux/store";
+import { setProfileImage } from "../../redux/profileSlice";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import RNPickerSelect from "react-native-picker-select"; // Importing the picker library
 
 export default function Profile() {
   const { user } = useUser();
-  const { userId } = useAuth();
   const [storedUserData, setStoredUserData] = useState({
     username: "Guest",
     email: "No email found",
+  });
+  const [userInfo, setUserInfo] = useState({
     nationality: "",
     phone: "",
+    Gender: "",
   });
-  //   console.log(user)
+  const [email, setEmail] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableUserInfo, setEditableUserInfo] = useState(userInfo);
+  const [countries, setCountries] = useState<string[]>([]);
+
   const dispatch = useDispatch();
   const { profileImage } = useSelector((state: RootState) => state.profile);
-  const [editable, setEditable] = useState(false);
-  const [nationality, setNationality] = useState("");
-  const [phone, setPhone] = useState("");
-  const [Gender, setGender] = useState("");
   const [userID, setUserID] = useState<string | null>(null);
-  const [tempGender, setTempGender] = useState("");
-  const [tempNationality, setTempNationality] = useState("");
-  const [tempPhone, setTempPhone] = useState("");
+
+  useEffect(() => {
+    // Fetch countries list on component mount
+    const fetchCountries = async () => {
+      try {
+        const response = await axios.get("https://restcountries.com/v3.1/all");
+        const countryNames = response.data.map(
+          (country: any) => country.name.common
+        );
+        setCountries(countryNames);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+        Alert.alert("Error", "Failed to fetch country list.");
+      }
+    };
+
+    fetchCountries();
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const username = await AsyncStorage.getItem("username");
-        const email = await AsyncStorage.getItem("email");
-        const storedNationality = await AsyncStorage.getItem("nationality");
-        const storedPhone = await AsyncStorage.getItem("phone");
-        const storedGender = await AsyncStorage.getItem("gender");
+        const savedEmail = await AsyncStorage.getItem("email");
+        console.log(savedEmail);
+        const clerkEmail = user?.primaryEmailAddress?.emailAddress;
         const image = await AsyncStorage.getItem("profileImage");
-        const StoredUserId = await AsyncStorage.getItem("mongoId");
-        console.log(StoredUserId);
-
+        const storedUserId = await AsyncStorage.getItem("mongoId");
         setStoredUserData({
           username: username || "Guest",
-          email: email || "No email found",
-          nationality: storedNationality || "",
-          phone: storedPhone || "",
+          email: savedEmail || "No email found",
         });
-        setNationality(storedNationality || "");
-        setPhone(storedPhone || "");
-        setProfileImage(image);
-        setUserID(StoredUserId);
-        setGender(storedGender || "");
+        const userEmail = clerkEmail || savedEmail || "";
+        setEmail(userEmail);
+
+        setUserID(storedUserId);
         if (image) {
-          dispatch(setProfileImage(image)); // Set profile image from AsyncStorage
+          dispatch(setProfileImage(image));
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -71,40 +83,34 @@ export default function Profile() {
     };
 
     fetchUserData();
-  }, [dispatch]);
+  }, [user, dispatch]);
 
-  const handleProfileUpdate = async () => {
-    try {
-      if (!Gender || !nationality || !phone) {
-        Alert.alert(
-          "Missing Information",
-          "Please fill all fields before saving."
-        );
-        return;
-      }
-
-      await AsyncStorage.setItem("nationality", nationality);
-      await AsyncStorage.setItem("phone", phone);
-      await AsyncStorage.setItem("gender", Gender);
-
-      await axios.patch(
-        `https://app-database.onrender.com/user/update-profile/${userID}`,
-        {
-          nationality,
-          phone,
-          Gender,
-        }
+  useEffect(() => {
+    const fetchUserData = async () => {
+      // Fetch user data from backend
+      const response = await axios.get(
+        `https://app-database.onrender.com/user/userdata/${email}`
       );
+      console.log(response.data);
+      if (response.status === 200) {
+        setUserInfo({
+          nationality: response.data.nationality || "",
+          phone: response.data.phone || "",
+          Gender: response.data.Gender || "",
+        });
+        setEditableUserInfo({
+          nationality: response.data.nationality || "",
+          phone: response.data.phone || "",
+          Gender: response.data.Gender || "",
+        });
+      }
+    };
 
-      alert("Profile Update successfully");
-      setEditable(false);
-    } catch (error) {
-      console.error("Error updating user data:", error);
-    }
-  };
+    fetchUserData();
+  }, [email]);
 
   const handleProfileImageChange = async () => {
-    if (user?.imageUrl) return; // Prevent changes for Google/Facebook users
+    if (user?.imageUrl) return;
 
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -126,10 +132,9 @@ export default function Profile() {
   };
 
   const updateProfileImage = async (selectedImage: string) => {
-    dispatch(setProfileImage(selectedImage)); // Update Redux store
-    await AsyncStorage.setItem("profileImage", selectedImage); // Persist to AsyncStorage
+    dispatch(setProfileImage(selectedImage));
+    await AsyncStorage.setItem("profileImage", selectedImage);
 
-    // Send to backend as well
     const formData = new FormData();
     formData.append("image", {
       uri: selectedImage,
@@ -139,7 +144,7 @@ export default function Profile() {
 
     try {
       await axios.post(
-        `https://app-database.onrender.com/user/upload-profile-image/${userID}`,
+        `https://app-database.onrender.com/user/upload-profile-image/${email}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -152,140 +157,167 @@ export default function Profile() {
     }
   };
 
+  // Toggle Edit Mode
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+    if (!isEditing) {
+      setEditableUserInfo(userInfo); // Reset to original values
+    }
+  };
+
+  // Handle Save Changes
+  const handleSaveChanges = async () => {
+    try {
+      await axios.patch(
+        `https://app-database.onrender.com/user/update-profile/${email}`,
+        editableUserInfo
+      );
+      setUserInfo(editableUserInfo);
+      setIsEditing(false);
+      Alert.alert("Success", "Profile updated successfully.");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      Alert.alert("Error", "Failed to update profile.");
+    }
+  };
+
   const userName = user?.fullName || storedUserData.username;
   const userEmail =
     user?.primaryEmailAddress?.emailAddress || storedUserData.email;
-  const isGoogleOrFacebookUser = Boolean(user?.imageUrl); // Check if user logged in via Google/Facebook
-
+  const isGoogleOrFacebookUser = Boolean(user?.imageUrl);
   const displayImage = user?.imageUrl || profileImage || null;
-
-  const handleEdit = () => {
-    setTempGender(Gender);
-    setTempNationality(nationality);
-    setTempPhone(phone);
-    setEditable(true);
-  };
-  const handleCancelEdit = () => {
-    setGender(tempGender);
-    setNationality(tempNationality);
-    setPhone(tempPhone);
-    setEditable(false);
-  };
-
   return (
     <View style={styles.container}>
+      {/* Profile Section */}
       <View style={styles.profileSection}>
-        {/* Display user image if available, otherwise show first letter of name */}
-        {displayImage ? (
-          <Image source={{ uri: displayImage }} style={styles.profileImage} />
-        ) : (
-          <View style={styles.profilePlaceholder}>
-            <Text style={styles.profileInitial}>
-              {userName.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-        )}
+        {/* Profile Image */}
+        <View style={styles.profileImageContainer}>
+          {displayImage ? (
+            <Image source={{ uri: displayImage }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.profilePlaceholder}>
+              <Text style={styles.profileInitial}>{userName.charAt(0)}</Text>
+            </View>
+          )}
 
-        {!isGoogleOrFacebookUser && (
-          <TouchableOpacity
-            onPress={handleProfileImageChange}
-            style={styles.changeImageButton}
-          >
-            <Text style={styles.changeImageText}>Change Profile Image</Text>
-          </TouchableOpacity>
-        )}
+          {/* Change Profile Image Button */}
+          {!isGoogleOrFacebookUser && (
+            <TouchableOpacity
+              onPress={handleProfileImageChange}
+              style={styles.changeImageButton}
+            >
+              <MaterialIcons name="camera-alt" size={22} color="white" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
 
+      {/* User Info Section */}
+      <View style={styles.infoCard}>
         <Text style={styles.userName}>{userName}</Text>
         <Text style={styles.userEmail}>{userEmail}</Text>
+      </View>
 
-        {!isGoogleOrFacebookUser && (
-          <View style={styles.Editcontainer}>
-            <View style={styles.card}>
-            <Text style={styles.label}>Gender</Text>
-            <View style={styles.genderContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.genderBox,
-                  Gender === "Male" && styles.selectedGender,  // Apply glow effect if 'Male' is selected
-                ]}
-                onPress={() => {
-                  if (editable) {  // Allow gender selection if profile is in editable state
-                    setGender("Male");
-                  }
-                }}
-                disabled={!editable} // Disable if not in editing mode
-              >
-                <Text style={styles.genderText}>Male</Text>
-              </TouchableOpacity>
+      {/* Profile Details Section */}
+      <View style={styles.detailsCard}>
+        {/* Gender Selection */}
+        <Text style={styles.label}>Gender</Text>
+        {isEditing ? (
+          <View style={styles.genderSelection}>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                editableUserInfo.Gender === "Male" && styles.selectedGender,
+              ]}
+              onPress={() =>
+                setEditableUserInfo({ ...editableUserInfo, Gender: "Male" })
+              }
+            >
+              <Text style={styles.genderButtonText}>Male</Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  styles.genderBox,
-                  Gender === "Female" && styles.selectedGender,  // Apply glow effect if 'Female' is selected
-                ]}
-                onPress={() => {
-                  if (editable) {  // Allow gender selection if profile is in editable state
-                    setGender("Female");
-                  }
-                }}
-                disabled={!editable} // Disable if not in editing mode
-              >
-                <Text style={styles.genderText}>Female</Text>
-              </TouchableOpacity>
-            </View>
-
-
-
-              <Text style={styles.label}>Nationality</Text>
-              <Picker
-                selectedValue={nationality}
-                style={styles.input}
-                onValueChange={(itemValue) => setNationality(itemValue)}
-                enabled={editable}
-              >
-                <Picker.Item label="Select Nationality" value="" />
-                <Picker.Item label="American" value="American" />
-                <Picker.Item label="Canadian" value="Canadian" />
-                <Picker.Item label="Indian" value="Indian" />
-                <Picker.Item label="British" value="British" />
-              </Picker>
-
-              <Text style={styles.label}>Phone</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter phone number"
-                value={phone}
-                editable={editable}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-
-              {editable ? (
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    onPress={handleProfileUpdate}
-                    style={styles.saveButton}
-                  >
-                    <Text style={styles.buttonText}>Save</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleCancelEdit}
-                    style={styles.cancelButton}
-                  >
-                    <Text style={styles.buttonText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  onPress={handleEdit}
-                  style={styles.editButton}
-                >
-                  <MaterialIcons name="edit" size={24} color="white" />
-                </TouchableOpacity>
-              )}
-            </View>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                editableUserInfo.Gender === "Female" && styles.selectedGender,
+              ]}
+              onPress={() =>
+                setEditableUserInfo({ ...editableUserInfo, Gender: "Female" })
+              }
+            >
+              <Text style={styles.genderButtonText}>Female</Text>
+            </TouchableOpacity>
           </View>
+        ) : (
+          <Text style={styles.infoText}>
+            {userInfo.Gender ? userInfo.Gender : ""}
+          </Text>
         )}
+
+        {/* Phone Input */}
+        <Text style={styles.label}>Phone</Text>
+        {isEditing ? (
+          <TextInput
+            style={styles.input}
+            placeholder="Enter phone number"
+            value={editableUserInfo.phone}
+            onChangeText={(text) =>
+              setEditableUserInfo({ ...editableUserInfo, phone: text })
+            }
+            keyboardType="phone-pad"
+          />
+        ) : (
+          <Text style={styles.infoText}>
+            {userInfo.phone ? userInfo.phone : ""}
+          </Text>
+        )}
+
+        {/* Nationality Input */}
+        <Text style={styles.label}>Nationality</Text>
+        {isEditing ? (
+          <Picker
+            selectedValue={editableUserInfo.nationality}
+            style={styles.input}
+            onValueChange={(value) =>
+              setEditableUserInfo({ ...editableUserInfo, nationality: value })
+            }
+          >
+            {countries.map((country, index) => (
+              <Picker.Item key={index} label={country} value={country} />
+            ))}
+          </Picker>
+        ) : (
+          <Text style={styles.infoText}>
+            {userInfo.nationality || "Not Provided"}
+          </Text>
+        )}
+
+        {/* Edit / Save & Cancel Buttons */}
+        <View style={styles.buttonContainer}>
+          {isEditing ? (
+            <>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveChanges}
+              >
+                <Text style={styles.buttonText}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleEditToggle}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handleEditToggle}
+            >
+              <Text style={styles.buttonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -294,28 +326,36 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: "#f9f9f9",
     alignItems: "center",
-    backgroundColor: "#fff",
   },
   profileSection: {
+    width: "100%",
+    backgroundColor: "#007bff",
+    paddingBottom: 60,
     alignItems: "center",
-    marginTop: 20,
+    justifyContent: "center",
+  },
+  profileImageContainer: {
+    alignItems: "center",
+    marginTop: 40,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: "#fff",
   },
   profilePlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: "#ccc",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    borderWidth: 3,
+    borderColor: "#fff",
   },
   profileInitial: {
     fontSize: 40,
@@ -323,62 +363,96 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   changeImageButton: {
-    marginTop: 10,
-    padding: 8,
+    position: "absolute",
+    bottom: 0,
+    right: 0,
     backgroundColor: "#007bff",
-    borderRadius: 5,
+    width: 35,
+    height: 35,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
   },
-  changeImageText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
+  infoCard: {
+    backgroundColor: "#fff",
+    width: "90%",
+    padding: 20,
+    borderRadius: 15,
+    marginTop: -40,
+    alignItems: "center",
   },
   userName: {
     fontSize: 22,
     fontWeight: "bold",
-    marginTop: 10,
   },
   userEmail: {
     fontSize: 16,
-    color: "#555",
+    color: "#777",
     marginTop: 5,
   },
-  userPhone: {
-    fontSize: 16,
-    color: "#555",
-    marginTop: 5,
-  },
-  Editcontainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    // backgroundColor: "#f5f5f5",
-  },
-  card: {
-    width: 300,
+  detailsCard: {
+    backgroundColor: "#fff",
+    width: "90%",
     padding: 20,
-    borderRadius: 10,
-    backgroundColor: "white",
-    shadowColor: "black",
+    borderRadius: 15,
+    marginTop: 15,
+    shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
+    shadowRadius: 10,
+    elevation: 3,
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 5,
+    color: "#333",
+  },
+  infoText: {
+    fontSize: 16,
+    color: "#777",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    marginBottom: 15,
   },
   input: {
     fontSize: 16,
-    // borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    paddingVertical: 5,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
     marginBottom: 15,
+  },
+  genderSelection: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 15,
+  },
+  genderButton: {
+    backgroundColor: "#ddd",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  selectedGender: {
+    backgroundColor: "#007bff",
+  },
+  genderButtonText: {
+    color: "#333",
+    fontWeight: "bold",
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  editButton: {
+    backgroundColor: "#007bff",
+    padding: 12,
+    borderRadius: 5,
+    alignItems: "center",
+    width: "100%",
     marginTop: 10,
   },
   saveButton: {
@@ -390,49 +464,16 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   cancelButton: {
-    backgroundColor: "#dc3545",
+    backgroundColor: "#f44336",
     padding: 12,
     borderRadius: 5,
     alignItems: "center",
     flex: 1,
     marginLeft: 5,
   },
-  editButton: {
-    backgroundColor: "#007bff",
-    padding: 12,
-    borderRadius: 5,
-    alignItems: "center",
-    marginTop: 10,
-  },
   buttonText: {
-    color: "white",
+    color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  genderContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 15,
-  },
-  genderBox: {
-    flex: 1,
-    paddingVertical: 15,
-    borderWidth: 2,
-    borderRadius: 8,
-    borderColor: "#ccc",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f9f9f9",
-    marginHorizontal: 5,
-  },
-  selectedGender: {
-    borderColor: "#007BFF",  // Blue border for the selected option
-    backgroundColor: "#e0f7fa", // Light blue background when selected
-    elevation: 4,  // Adds a slight shadow/glow effect
-  },
-  genderText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
   },
 });

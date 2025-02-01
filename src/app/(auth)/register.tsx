@@ -78,7 +78,7 @@ const Register = () => {
         }
       );
 
-      if (response.data.msg === "ok") {
+      if (response.data.status === "ok") {
         Alert.alert(
           "Success",
           "Registration successful! Please verify your email to log in."

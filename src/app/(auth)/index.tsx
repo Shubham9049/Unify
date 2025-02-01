@@ -151,6 +151,7 @@ const Index = () => {
         await AsyncStorage.setItem("profileImage", data.user.image);
         await AsyncStorage.setItem("mongoId", data.user._id);
         // Navigate to the main screen
+        console.log(data.user._id);
         router.push("/(main)");
       } else {
         alert(data.msg || "Login failed");
