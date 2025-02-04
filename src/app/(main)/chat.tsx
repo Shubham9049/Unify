@@ -11,9 +11,11 @@ import {
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 
 const API_URL = "https://app-database.onrender.com/user";
 const Chat = ({ navigation }: any) => {
+  const {user}=useUser();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -23,7 +25,7 @@ const Chat = ({ navigation }: any) => {
     const fetchUserData = async () => {
       try {
         // Retrieve email from AsyncStorage
-        const email = await AsyncStorage.getItem("email");
+        const email = await AsyncStorage.getItem("email")||user?.primaryEmailAddress?.emailAddress;
 
         if (email) {
           // Fetch user data from the backend using email
@@ -68,7 +70,7 @@ const Chat = ({ navigation }: any) => {
   const handleUserPress = (selectedUser: any) => {
     router.push({
       pathname: "/chatScreen",
-      params: { user: JSON.stringify(selectedUser) }, // Pass user data as string
+      params: { users: JSON.stringify(selectedUser) }, // Pass user data as string
     });
   };
 

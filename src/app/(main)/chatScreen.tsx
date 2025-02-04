@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { useLocalSearchParams } from "expo-router";
 import { io } from "socket.io-client";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser } from "@clerk/clerk-expo";
 
 const socket = io("https://app-database.onrender.com");
 
@@ -22,32 +23,32 @@ interface Message {
 }
 
 const ChatScreen = () => {
-  const { user } = useLocalSearchParams();
-  const selectedUser = user && typeof user === "string" ? JSON.parse(user) : null;
-
+  const { users } = useLocalSearchParams();
+  const { user } = useUser();
+  const selectedUser =
+    users && typeof users === "string" ? JSON.parse(users) : null;
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
-  const [token, setToken] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const authToken = await AsyncStorage.getItem("authToken");
-        const email = await AsyncStorage.getItem("email");
+        const email =
+          (await AsyncStorage.getItem("email")) ||
+          user?.primaryEmailAddress?.emailAddress;
 
-        if (authToken && email) {
-          setToken(authToken);
-
-          // Fetch user ID only if email exists
+        if (email) {
           const response = await axios.get(
             `https://app-database.onrender.com/user/userdata/${email}`
           );
           setUserId(response.data._id);
         }
       } catch (error) {
-        console.error("Error fetching token or user data:", error);
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -55,12 +56,12 @@ const ChatScreen = () => {
   }, []);
 
   useEffect(() => {
+    if (!userId || !selectedUser) return;
+
     const fetchMessages = async () => {
-      if (!selectedUser || !token) return;
       try {
         const response = await axios.get<{ messages: Message[] }>(
-          `https://app-database.onrender.com/chat/messages/${selectedUser._id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `https://app-database.onrender.com/chat/messages/${selectedUser._id}?senderId=${userId}`
         );
         setMessages(response.data.messages);
       } catch (error) {
@@ -69,7 +70,7 @@ const ChatScreen = () => {
     };
 
     fetchMessages();
-  }, [selectedUser, token]);
+  }, [userId, selectedUser]);
 
   useEffect(() => {
     socket.on("newMessage", (message: Message) => {
@@ -81,8 +82,8 @@ const ChatScreen = () => {
     };
   }, []);
 
-  const sendMessage = () => {
-    if (newMessage.trim() === "" || !selectedUser) return;
+  const sendMessage = async () => {
+    if (newMessage.trim() === "" || !selectedUser || !userId) return;
 
     const messageData: Message = {
       senderId: userId,
@@ -92,21 +93,41 @@ const ChatScreen = () => {
 
     socket.emit("sendMessage", messageData);
     setMessages((prevMessages) => [...prevMessages, messageData]);
+
+    try {
+      await axios.post(
+        "https://app-database.onrender.com/chat/send",
+        messageData
+      );
+    } catch (error) {
+      console.error("Error sending message to backend:", error);
+    }
+
     setNewMessage("");
   };
 
-  useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>{selectedUser?.username || "Unknown User"}</Text>
-      <ScrollView ref={scrollViewRef} style={styles.messagesContainer}>
+      <Text style={styles.header}>
+        {selectedUser?.username || user?.fullName || "Unknown User"}
+      </Text>
+      <ScrollView style={styles.messagesContainer}>
         {messages.map((msg, index) => (
           <Text
             key={index}
-            style={msg.senderId === userId ? styles.sentMessage : styles.receivedMessage}
+            style={
+              msg.senderId === userId
+                ? styles.sentMessage
+                : styles.receivedMessage
+            }
           >
             {msg.message}
           </Text>
@@ -129,7 +150,12 @@ export default ChatScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10, backgroundColor: "#f0f0f0" },
-  header: { fontSize: 20, fontWeight: "bold", marginBottom: 10, textAlign: "center" },
+  header: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
   messagesContainer: { flex: 1 },
   sentMessage: {
     alignSelf: "flex-end",
