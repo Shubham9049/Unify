@@ -13,7 +13,6 @@ export default function RootLayout() {
       <Drawer.Screen name="index" options={{ title: "Home" }} />
       <Drawer.Screen name="Profile" options={{ title: "Profile" }} />
       <Drawer.Screen name="chat" options={{ title: "Chat" }} />
-      <Drawer.Screen name="chatScreen" options={{ title: "Chat Screen" , drawerItemStyle:{display:"none"}}} />
     </Drawer>
   );
 }

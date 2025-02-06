@@ -62,7 +62,6 @@ export default function Profile() {
       try {
         const username = await AsyncStorage.getItem("username");
         const savedEmail = await AsyncStorage.getItem("email");
-        console.log(savedEmail);
         const clerkEmail = user?.primaryEmailAddress?.emailAddress;
         const image = await AsyncStorage.getItem("profileImage");
         const storedUserId = await AsyncStorage.getItem("mongoId");
@@ -91,7 +90,6 @@ export default function Profile() {
       const response = await axios.get(
         `https://app-database.onrender.com/user/userdata/${email}`
       );
-      console.log(response.data);
       if (response.status === 200) {
         setUserInfo({
           nationality: response.data.nationality || "",

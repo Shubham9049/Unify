@@ -6,6 +6,7 @@ import {
   Button,
   StyleSheet,
   ScrollView,
+  Image,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { io } from "socket.io-client";
@@ -114,11 +115,29 @@ const ChatScreen = () => {
     );
   }
 
+  // Function to get user initials
+  const getInitials = (name: string | undefined) => {
+    return name ? name.charAt(0).toUpperCase() : "?";
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>
-        {selectedUser?.username || user?.fullName || "Unknown User"}
-      </Text>
+      <View style={styles.headerContainer}>
+      {selectedUser?.image ? (
+          <Image source={{ uri: selectedUser.image }} style={styles.userImage} />
+        ) : user?.imageUrl ? (
+          <Image source={{ uri: user.imageUrl }} style={styles.userImage} />
+        ) : (
+          <View style={styles.userInitials}>
+            <Text style={styles.initialsText}>
+              {getInitials(selectedUser?.username || user?.fullName)}
+            </Text>
+          </View>
+        )}
+        <Text style={styles.header}>
+          {selectedUser?.username || user?.fullName || "Unknown User"}
+        </Text>
+      </View>
       <ScrollView style={styles.messagesContainer}>
         {messages.map((msg, index) => (
           <Text
@@ -149,14 +168,36 @@ const ChatScreen = () => {
 export default ChatScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: "#f0f0f0" },
+  container: { flex: 1,paddingHorizontal:5, backgroundColor: "#f0f0f0" },
+  headerContainer: { flexDirection: "row", alignItems: "center",paddingLeft:15,marginTop:10 },
+  userImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 10,
+  },
+  defaultImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#ccc",
+    marginRight: 10,
+  },
   header: {
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
   },
-  messagesContainer: { flex: 1 },
+  messagesContainer: { flex: 1, padding:10, marginBottom:10 },
+  userInitials: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#0084ff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  initialsText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   sentMessage: {
     alignSelf: "flex-end",
     backgroundColor: "#0084ff",

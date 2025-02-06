@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -14,62 +15,64 @@ import { router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 
 const API_URL = "https://app-database.onrender.com/user";
-const Chat = ({ navigation }: any) => {
+const Chat = () => {
   const {user}=useUser();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // Fetch current user's email from AsyncStorage and user data
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // Retrieve email from AsyncStorage
-        const email = await AsyncStorage.getItem("email")||user?.primaryEmailAddress?.emailAddress;
-
-        if (email) {
-          // Fetch user data from the backend using email
-          const response = await axios.get(`${API_URL}/userdata/${email}`);
-          setCurrentUser(response.data); // Set the current user data
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  // Fetch all users from the backend, excluding the current user
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get(API_URL);
-        const allUsers = response.data || [];
-
-        // Filter out the logged-in user
-        if (currentUser) {
-          const filteredUsers = allUsers.filter(
-            (user: any) => user.email !== currentUser.email
-          );
-          setUsers(filteredUsers);
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (currentUser) {
-      fetchUsers();
+// Fetch current user's email from AsyncStorage
+const fetchUserData = async () => {
+  try {
+    const email = await AsyncStorage.getItem("email")||user?.primaryEmailAddress?.emailAddress;
+    if (email) {
+      const response = await axios.get(`${API_URL}/userdata/${email}`);
+      setCurrentUser(response.data);
     }
-  }, [currentUser]);
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+};
+
+// Fetch all users from the backend, excluding the current user
+const fetchUsers = async (currentUserData?: any) => {
+  try {
+    const response = await axios.get(API_URL);
+    const allUsers = response.data || [];
+
+    if (currentUserData) {
+      const filteredUsers = allUsers.filter(
+        (user: any) => user.email !== currentUserData.email
+      );
+      setUsers(filteredUsers);
+    }
+  } catch (error) {
+    console.error("Error fetching users:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Fetch data when the component mounts
+useEffect(() => {
+  const loadData = async () => {
+    setLoading(true);
+    await fetchUserData();
+  };
+  loadData();
+}, []);
+
+// Fetch users when currentUser is set
+useEffect(() => {
+  if (currentUser) {
+    fetchUsers(currentUser);
+  }
+}, [currentUser]);
 
   // Navigate to chatScreen.tsx with selected user
   const handleUserPress = (selectedUser: any) => {
     router.push({
-      pathname: "/chatScreen",
+      pathname: "/chat/chat-screen",
       params: { users: JSON.stringify(selectedUser) }, // Pass user data as string
     });
   };
@@ -99,6 +102,7 @@ const Chat = ({ navigation }: any) => {
           data={users}
           keyExtractor={(item: any) => item._id}
           renderItem={renderUser}
+          
         />
       )}
     </View>

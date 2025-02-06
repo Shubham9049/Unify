@@ -105,7 +105,7 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
         style={styles.drawerButton}
       >
         <Ionicons name="chatbox-ellipses" size={24} color="#fff" style={styles.icon} />
-        <Text style={styles.drawerButtonText}>Chat's</Text>
+        <Text style={styles.drawerButtonText}>Connections</Text>
       </TouchableOpacity>
 
       {/* Logout button at the bottom */}
