@@ -7,6 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Pressable,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { io } from "socket.io-client";
@@ -17,6 +19,7 @@ import { useUser } from "@clerk/clerk-expo";
 const socket = io("https://app-database.onrender.com");
 
 interface Message {
+  _id: string;
   senderId: string;
   receiverId: string;
   message: string;
@@ -87,6 +90,7 @@ const ChatScreen = () => {
     if (newMessage.trim() === "" || !selectedUser || !userId) return;
 
     const messageData: Message = {
+      _id: Date.now().toString(),
       senderId: userId,
       receiverId: selectedUser._id,
       message: newMessage,
@@ -107,6 +111,39 @@ const ChatScreen = () => {
     setNewMessage("");
   };
 
+  // Function to delete a message
+  const deleteMessage = async (messageId: string, senderId: string) => {
+    Alert.alert(
+      "Delete Message",
+      "Are you sure you want to delete this message?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            try {
+              const response = await axios.delete(
+                `https://app-database.onrender.com/chat/delete/${messageId}`,
+                { data: { userId } } // Sending userId in request body
+              );
+
+              if (response.data.success) {
+                setMessages((prevMessages) =>
+                  prevMessages.filter((msg) => msg._id !== messageId)
+                );
+              }
+            } catch (error) {
+              console.error("Error deleting message:", error);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -123,8 +160,11 @@ const ChatScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-      {selectedUser?.image ? (
-          <Image source={{ uri: selectedUser.image }} style={styles.userImage} />
+        {selectedUser?.image ? (
+          <Image
+            source={{ uri: selectedUser.image }}
+            style={styles.userImage}
+          />
         ) : user?.imageUrl ? (
           <Image source={{ uri: user.imageUrl }} style={styles.userImage} />
         ) : (
@@ -139,17 +179,18 @@ const ChatScreen = () => {
         </Text>
       </View>
       <ScrollView style={styles.messagesContainer}>
-        {messages.map((msg, index) => (
-          <Text
-            key={index}
+        {messages.map((msg) => (
+          <Pressable
+            key={msg._id}
+            onLongPress={() => deleteMessage(msg._id, msg.senderId)}
             style={
               msg.senderId === userId
                 ? styles.sentMessage
                 : styles.receivedMessage
             }
           >
-            {msg.message}
-          </Text>
+            <Text style={styles.messageText}>{msg.message}</Text>
+          </Pressable>
         ))}
       </ScrollView>
       <View style={styles.inputContainer}>
@@ -159,7 +200,11 @@ const ChatScreen = () => {
           placeholder="Type a message..."
           style={styles.input}
         />
-        <Button title="Send" onPress={sendMessage} disabled={!newMessage.trim()} />
+        <Button
+          title="Send"
+          onPress={sendMessage}
+          disabled={!newMessage.trim()}
+        />
       </View>
     </View>
   );
@@ -168,8 +213,13 @@ const ChatScreen = () => {
 export default ChatScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1,paddingHorizontal:5, backgroundColor: "#f0f0f0" },
-  headerContainer: { flexDirection: "row", alignItems: "center",paddingLeft:15,marginTop:10 },
+  container: { flex: 1, paddingHorizontal: 5, backgroundColor: "#f0f0f0" },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingLeft: 15,
+    marginTop: 10,
+  },
   userImage: {
     width: 50,
     height: 50,
@@ -187,7 +237,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
-  messagesContainer: { flex: 1, padding:10, marginBottom:10 },
+  messagesContainer: { flex: 1, padding: 10, marginBottom: 10 },
   userInitials: {
     width: 40,
     height: 40,
@@ -228,5 +278,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 10,
     marginRight: 10,
+  },
+  messageText: {
+    // flex: 1,
   },
 });
