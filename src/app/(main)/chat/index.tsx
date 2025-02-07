@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,65 +15,98 @@ import { router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 
 const API_URL = "https://app-database.onrender.com/user";
+const CHAT_API_URL = "https://app-database.onrender.com/chat"; // ✅ Added chat API base URL
+
 const Chat = () => {
-  const {user}=useUser();
+  const { user } = useUser();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState<{
+    [key: string]: number;
+  }>({});
 
-// Fetch current user's email from AsyncStorage
-const fetchUserData = async () => {
-  try {
-    const email = await AsyncStorage.getItem("email")||user?.primaryEmailAddress?.emailAddress;
-    if (email) {
-      const response = await axios.get(`${API_URL}/userdata/${email}`);
-      setCurrentUser(response.data);
+  // Fetch current user's email from AsyncStorage
+  const fetchUserData = async () => {
+    try {
+      const email =
+        (await AsyncStorage.getItem("email")) ||
+        user?.primaryEmailAddress?.emailAddress;
+      if (email) {
+        const response = await axios.get(`${API_URL}/userdata/${email}`);
+        setCurrentUser(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
     }
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-  }
-};
+  };
 
-// Fetch all users from the backend, excluding the current user
-const fetchUsers = async (currentUserData?: any) => {
-  try {
-    const response = await axios.get(API_URL);
-    const allUsers = response.data || [];
+  // Fetch all users from the backend, excluding the current user
+  const fetchUsers = async (currentUserData?: any) => {
+    try {
+      const response = await axios.get(API_URL);
+      const allUsers = response.data || [];
 
-    if (currentUserData) {
-      const filteredUsers = allUsers.filter(
-        (user: any) => user.email !== currentUserData.email
-      );
-      setUsers(filteredUsers);
+      if (currentUserData) {
+        const filteredUsers = allUsers.filter(
+          (user: any) => user.email !== currentUserData.email
+        );
+        setUsers(filteredUsers);
+
+        // Fetch unread messages count for each user
+        const unreadCounts: { [key: string]: number } = {};
+        for (const user of filteredUsers) {
+          const countRes = await axios.get(
+            `${CHAT_API_URL}/unread-messages?receiverId=${currentUserData._id}&senderId=${user._id}`
+          );
+          unreadCounts[user._id] = countRes.data.unreadCount || 0;
+        }
+        setUnreadMessages(unreadCounts);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  } catch (error) {
-    console.error("Error fetching users:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-// Fetch data when the component mounts
-useEffect(() => {
-  const loadData = async () => {
-    setLoading(true);
+  // Fetch data when the component mounts
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await fetchUserData();
+    };
+    loadData();
+  }, []);
+
+  // Fetch users when currentUser is set
+  useEffect(() => {
+    if (currentUser) {
+      fetchUsers(currentUser);
+    }
+  }, [currentUser]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
     await fetchUserData();
   };
-  loadData();
-}, []);
 
-// Fetch users when currentUser is set
-useEffect(() => {
-  if (currentUser) {
-    fetchUsers(currentUser);
-  }
-}, [currentUser]);
+  // Navigate to chatScreen.tsx and mark messages as read
+  const handleUserPress = async (selectedUser: any) => {
+    // Reset unread count for this chat
+    setUnreadMessages((prev) => ({ ...prev, [selectedUser._id]: 0 }));
 
-  // Navigate to chatScreen.tsx with selected user
-  const handleUserPress = (selectedUser: any) => {
+    // ✅ Mark messages as read in the backend
+    await axios.post(`${CHAT_API_URL}/mark-as-read`, {
+      receiverId: currentUser._id,
+      senderId: selectedUser._id,
+    });
+
     router.push({
       pathname: "/chat/chat-screen",
-      params: { users: JSON.stringify(selectedUser) }, // Pass user data as string
+      params: { users: JSON.stringify(selectedUser) },
     });
   };
 
@@ -83,11 +116,20 @@ useEffect(() => {
       style={styles.userContainer}
       onPress={() => handleUserPress(item)}
     >
-      <Image
-        source={{ uri: item.image || "https://via.placeholder.com/50" }}
-        style={styles.avatar}
-      />
-      <Text style={styles.username}>{item.username}</Text>
+      <View style={styles.user_img_text}>
+        <Image
+          source={{ uri: item.image || "https://via.placeholder.com/50" }}
+          style={styles.avatar}
+        />
+        <Text style={styles.username}>{item.username}</Text>
+      </View>
+
+      {/* Unread message count badge */}
+      {unreadMessages[item._id] > 0 && (
+        <View style={styles.unreadBadge}>
+          <Text style={styles.unreadText}>{unreadMessages[item._id]}</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 
@@ -102,7 +144,9 @@ useEffect(() => {
           data={users}
           keyExtractor={(item: any) => item._id}
           renderItem={renderUser}
-          
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       )}
     </View>
@@ -120,7 +164,25 @@ const styles = StyleSheet.create({
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
+    justifyContent: "space-between",
   },
   avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
-  username: { fontSize: 16, fontWeight: "bold" },
+  username: { fontSize: 16, fontWeight: "bold" },
+  user_img_text: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  unreadBadge: {
+    // position: "absolute",
+    // right: 15,
+    // top: 22,
+    backgroundColor: "red",
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  unreadText: { color: "#fff", fontSize: 12, fontWeight: "bold" },
 });
