@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -31,10 +31,14 @@ const ChatScreen = () => {
   const { user } = useUser();
   const selectedUser =
     users && typeof users === "string" ? JSON.parse(users) : null;
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+
+  // ✅ Move useRef inside the function component
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -61,7 +65,6 @@ const ChatScreen = () => {
 
   useEffect(() => {
     if (!userId || !selectedUser) return;
-
     const fetchMessages = async () => {
       try {
         const response = await axios.get<{ messages: Message[] }>(
@@ -79,6 +82,9 @@ const ChatScreen = () => {
   useEffect(() => {
     socket.on("newMessage", (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
+
+      // ✅ Scroll to bottom when a new message is received
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
     });
 
     return () => {
@@ -94,10 +100,14 @@ const ChatScreen = () => {
       senderId: userId,
       receiverId: selectedUser._id,
       message: newMessage,
+      timestamp: new Date().toISOString(),
     };
 
     socket.emit("sendMessage", messageData);
     setMessages((prevMessages) => [...prevMessages, messageData]);
+
+    // ✅ Scroll to bottom after sending a message
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
 
     try {
       await axios.post(
@@ -111,23 +121,19 @@ const ChatScreen = () => {
     setNewMessage("");
   };
 
-  // Function to delete a message
-  const deleteMessage = async (messageId: string, senderId: string) => {
+  const deleteMessage = async (messageId: string) => {
     Alert.alert(
       "Delete Message",
       "Are you sure you want to delete this message?",
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
           onPress: async () => {
             try {
               const response = await axios.delete(
                 `https://app-database.onrender.com/chat/delete/${messageId}`,
-                { data: { userId } } // Sending userId in request body
+                { data: { userId } }
               );
 
               if (response.data.success) {
@@ -152,7 +158,6 @@ const ChatScreen = () => {
     );
   }
 
-  // Function to get user initials
   const getInitials = (name: string | undefined) => {
     return name ? name.charAt(0).toUpperCase() : "?";
   };
@@ -170,19 +175,26 @@ const ChatScreen = () => {
         ) : (
           <View style={styles.userInitials}>
             <Text style={styles.initialsText}>
-              {getInitials(selectedUser?.username || user?.fullName)}
+              {getInitials(selectedUser?.username)}
             </Text>
           </View>
         )}
         <Text style={styles.header}>
-          {selectedUser?.username || user?.fullName || "Unknown User"}
+          {selectedUser?.username || "Unknown User"}
         </Text>
       </View>
-      <ScrollView style={styles.messagesContainer}>
+
+      <ScrollView
+        ref={scrollRef}
+        style={styles.messagesContainer}
+        onContentSizeChange={() =>
+          scrollRef.current?.scrollToEnd({ animated: true })
+        }
+      >
         {messages.map((msg) => (
           <Pressable
             key={msg._id}
-            onLongPress={() => deleteMessage(msg._id, msg.senderId)}
+            onLongPress={() => deleteMessage(msg._id)}
             style={
               msg.senderId === userId
                 ? styles.sentMessage
@@ -190,9 +202,25 @@ const ChatScreen = () => {
             }
           >
             <Text style={styles.messageText}>{msg.message}</Text>
+            <Text
+              style={[
+                styles.timestamp,
+                msg.senderId === userId
+                  ? styles.sentTimestamp
+                  : styles.receivedTimestamp,
+              ]}
+            >
+              {msg.timestamp
+                ? new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Invalid Date"}
+            </Text>
           </Pressable>
         ))}
       </ScrollView>
+
       <View style={styles.inputContainer}>
         <TextInput
           value={newMessage}
@@ -238,6 +266,25 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   messagesContainer: { flex: 1, padding: 10, marginBottom: 10 },
+  timestamp: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 5,
+    alignSelf: "flex-end",
+  },
+  sentTimestamp: {
+    fontSize: 12,
+    color: "#D1E8FF", // Light blue color for sender's timestamp
+    marginTop: 5,
+    alignSelf: "flex-end",
+  },
+
+  receivedTimestamp: {
+    fontSize: 12,
+    color: "#666", // Darker grey for received messages timestamp
+    marginTop: 5,
+    alignSelf: "flex-start",
+  },
   userInitials: {
     width: 40,
     height: 40,

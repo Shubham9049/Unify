@@ -191,7 +191,7 @@ const Index = () => {
 
               {/* Email Input */}
               <TextInput
-                placeholder="User Name or E-mail"
+                placeholder="E-mail"
                 style={styles.input}
                 keyboardType="email-address"
                 autoCapitalize="none"
