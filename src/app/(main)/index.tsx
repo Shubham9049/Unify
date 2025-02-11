@@ -82,9 +82,7 @@ export default function App() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{
-            uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
-          }}
+          source={require("../../assets/images/logo.png")}
           style={styles.logo}
         />
         <TouchableOpacity
@@ -135,8 +133,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#007bff",
   },
   logo: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     borderRadius: 20,
   },
   profileContainer: {
