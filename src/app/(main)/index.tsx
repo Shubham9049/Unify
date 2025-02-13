@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ScrollView,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,22 +15,7 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useDispatch, useSelector } from "react-redux";
 import { setProfileImage } from "../../redux/profileSlice"; // Adjust the import path for your slice
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-
-
-// Section Data
-const sections = [
-  { name: "Dashboard", icon: "view-dashboard" },
-  { name: "Leads", icon: "account-multiple" },
-  { name: "University Leads", icon: "school" },
-  { name: "Applications", icon: "file-document" },
-  { name: "Campaigns", icon: "bullhorn" },
-  { name: "Email/Notifications", icon: "email" },
-  { name: "Cron Emailer", icon: "clock" },
-  { name: "Users", icon: "account-group" },
-  { name: "Queries", icon: "comment-question" },
-  { name: "Campus Visit", icon: "map-marker" },
-  { name: "Refer Friends", icon: "gift" },
-];  
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function App() {
   const { userId } = useAuth();
@@ -65,15 +57,27 @@ export default function App() {
   const displayImage = user?.imageUrl || profileImage || null;
   const sections = [
     { name: "Dashboard", icon: "home", route: "Dashboard" },
-    { name: "Leads", icon: "person-add", route: "LeadsScreen" },
-    { name: "University Leads", icon: "school", route: "UniversityLeadsScreen" },
-    { name: "Applications", icon: "file-tray-full", route: "ApplicationsScreen" },
-    { name: "Campaigns", icon: "megaphone", route: "CampaignsScreen" },
+    { name: "Leads", icon: "account-plus", route: "LeadsScreen" },
+    {
+      name: "University Leads",
+      icon: "school",
+      route: "UniversityLeadsScreen",
+    },
+    {
+      name: "Applications",
+      icon: "file-document", // Updated from "file-tray-full"
+      route: "ApplicationsScreen",
+    },
+    { name: "Campaigns", icon: "bullhorn", route: "CampaignsScreen" },
     { name: "Email/Notifications", icon: "mail", route: "NotificationsScreen" },
     { name: "Cron Emailer", icon: "timer", route: "CronEmailerScreen" },
-    { name: "Users", icon: "people", route: "UsersScreen" },
+    { name: "Users", icon: "account-multiple", route: "UsersScreen" },
     { name: "Queries", icon: "help-circle", route: "QueriesScreen" },
-    { name: "Campus Visit Request", icon: "location", route: "CampusVisitScreen" },
+    {
+      name: "Campus Visit Request",
+      icon: "store-marker-outline", // Updated from "location"
+      route: "CampusVisitScreen",
+    },
     { name: "Refer Friends", icon: "gift", route: "ReferFriendsScreen" },
   ];
 
@@ -103,21 +107,21 @@ export default function App() {
 
       {/* Sections Grid */}
       <ScrollView contentContainerStyle={styles.sectionContainer}>
-  {sections.map((section, index) => (
-    <TouchableOpacity
-      key={index}
-      style={styles.section}
-      onPress={() => router.push(`/(main)/${section.route}` as any)}
-    >
-      <View style={styles.iconCircle}>
-        <Icon name={section.icon} size={30} color="#fff" />
-      </View>
-      <Text style={styles.sectionText}>{section.name}</Text>
-    </TouchableOpacity>
-  ))}
-</ScrollView>
+        {sections.map((section, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.section}
+            onPress={() => router.push(`/(main)/${section.route}` as any)}
+          >
+            <View style={styles.iconCircle}>
+              <Icon name={section.icon} size={30} color="#fff" />
+            </View>
+            <Text style={styles.sectionText}>{section.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
