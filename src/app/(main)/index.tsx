@@ -15,7 +15,7 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useDispatch, useSelector } from "react-redux";
 import { setProfileImage } from "../../redux/profileSlice"; // Adjust the import path for your slice
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function App() {
   const { userId } = useAuth();
@@ -82,7 +82,7 @@ export default function App() {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <LinearGradient colors={["#0F2027", "#203A43", "#2C5364"]} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Image
@@ -114,32 +114,35 @@ export default function App() {
             onPress={() => router.push(`/(main)/${section.route}` as any)}
           >
             <View style={styles.iconCircle}>
-              <Icon name={section.icon} size={30} color="#fff" />
+              <Icon name={section.icon} size={30} color="#fff" style={styles.icon3D}/>
             </View>
             <Text style={styles.sectionText}>{section.name}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </SafeAreaView>
+      </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#007bff",
+    backgroundColor: "#26569e",
+    marginTop:15,
+    marginHorizontal:10,
+    borderRadius:28
   },
   logo: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    padding:25
   },
   profileContainer: {
     borderRadius: 20,
@@ -176,19 +179,28 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   iconCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 30,
-    backgroundColor: "#007bff",
+    width: 75,
+    height: 75,
+    borderRadius: 50,
+    backgroundColor: "#3498db",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5,
+    elevation: 10,
+    shadowColor: "#00ffff",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+  },
+  icon3D: {
+    textShadowColor: "rgba(0, 0, 255, 0.8)",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
   sectionText: {
     marginTop: 8,
     fontSize: 12,
     fontWeight: "600",
-    color: "#333",
+    color: "#ffff",
     textAlign: "center",
   },
 });
