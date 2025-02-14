@@ -13,11 +13,15 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   Keyboard,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router"; // Import the router for navigation
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { Ionicons } from "@expo/vector-icons"; // Import icons from expo/vector-icons
+import { LinearGradient } from "expo-linear-gradient";
+
+const { width, height } = Dimensions.get("window");
 
 const ResetPassword = () => {
   const [email, setEmail] = useState(""); // State to hold the email
@@ -71,7 +75,7 @@ const ResetPassword = () => {
       const data = await response.json();
       if (data.status === "ok") {
         Alert.alert("Success", "Password reset successfully!");
-        router.push("/(auth)"); // Navigate to login page after successful password reset
+        router.push("/(auth)/loginScreen"); // Navigate to login page after successful password reset
       } else {
         Alert.alert("Error", data.msg || "Failed to reset password");
       }
@@ -85,8 +89,7 @@ const ResetPassword = () => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "position" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -95,11 +98,11 @@ const ResetPassword = () => {
           keyboardShouldPersistTaps="handled"
         >
           <SafeAreaView style={styles.container}>
-            {/* Logo Section */}
-            <View style={styles.topBackground}>
+            {/* Top Section */}
+            <View style={styles.topContainer}>
               <Image
                 source={{
-                  uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
+                  uri: "https://cdni.iconscout.com/illustration/premium/thumb/account-login-protection-illustration-download-in-svg-png-gif-file-formats--security-secure-pack-files-folders-illustrations-7271014.png",
                 }}
                 style={styles.logo}
               />
@@ -108,64 +111,82 @@ const ResetPassword = () => {
             {/* Reset Password Form */}
             <View style={styles.formContainer}>
               <Text style={styles.title}>Reset Your Password</Text>
+              <Text style={styles.subtitle}>
+                Enter a new password for your account
+              </Text>
 
               {/* New Password Input */}
-              <View style={styles.inputContainer}>
+              <LinearGradient
+                colors={["#9ba5bd", "#7487b5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.inputContainer}
+              >
                 <TextInput
                   placeholder="Enter your new password"
                   style={styles.input}
                   secureTextEntry={!showPassword}
                   value={newPassword}
                   onChangeText={setNewPassword}
+                  placeholderTextColor="rgba(255,255,255,0.7)"
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
-                  style={styles.iconContainer}
                 >
                   <Ionicons
                     name={showPassword ? "eye-off-outline" : "eye-outline"}
                     size={24}
-                    color="#777"
+                    color="white"
                   />
                 </TouchableOpacity>
-              </View>
+              </LinearGradient>
 
               {/* Confirm Password Input */}
-              <View style={styles.inputContainer}>
+              <LinearGradient
+                colors={["#9ba5bd", "#7487b5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.inputContainer}
+              >
                 <TextInput
                   placeholder="Confirm your new password"
                   style={styles.input}
                   secureTextEntry={!showConfirmPassword}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
+                  placeholderTextColor="rgba(255,255,255,0.7)"
                 />
                 <TouchableOpacity
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  style={styles.iconContainer}
                 >
                   <Ionicons
                     name={
                       showConfirmPassword ? "eye-off-outline" : "eye-outline"
                     }
                     size={24}
-                    color="#777"
+                    color="white"
                   />
                 </TouchableOpacity>
-              </View>
+              </LinearGradient>
 
               {/* Reset Password Button */}
+
               <TouchableOpacity
                 onPress={handleResetPassword}
-                style={styles.button}
                 disabled={loading}
               >
-                <Text style={styles.buttonText}>
+                <LinearGradient
+                  colors={["#3A5BA9", "#08215e"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.button}
+                >
                   {loading ? (
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    "Reset Password"
+                    <Text style={styles.buttonText}>Reset Password</Text>
                   )}
-                </Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -178,73 +199,65 @@ const ResetPassword = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9F9F9",
+    backgroundColor: "#1F3B8C",
     alignItems: "center",
   },
-  topBackground: {
-    width: "100%",
-    height: "60%", // Adjusted height to fit logo properly
-    backgroundColor: "#007BFF",
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-    alignItems: "center",
+  topContainer: {
+    width: width,
+    height: height * 0.3,
+    backgroundColor: "#3A5BA9",
+    borderBottomLeftRadius: "50%",
+    borderBottomRightRadius: "50%",
     justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 100,
   },
   logo: {
-    width: 170,
-    height: 170,
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
-    borderRadius: 70,
-    position: "absolute",
-    top: 40,
   },
   formContainer: {
-    width: "85%",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
+    width: width * 0.85,
     alignItems: "center",
-    marginTop: -120, // Adjusted to avoid overlap
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 15,
+    color: "white",
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "white",
+    marginBottom: 20,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F3F3F3",
-    borderRadius: 8,
     width: "100%",
+    borderRadius: 10,
     marginBottom: 15,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
   },
   input: {
-    width: "90%",
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#F3F3F3",
-  },
-  iconContainer: {
-    position: "absolute",
-    right: 15,
+    flex: 1,
+    padding: 15,
+    color: "white",
   },
   button: {
-    width: "100%",
-    padding: 12,
-    backgroundColor: "#007BFF",
-    borderRadius: 8,
+    width: width * 0.85,
+    paddingVertical: 14,
+    borderRadius: 25,
     alignItems: "center",
-    marginTop: 15,
+    justifyContent: "center",
+    marginBottom: 20,
   },
   buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    color: "white",
     fontWeight: "bold",
+    fontSize: 16,
   },
 });
 

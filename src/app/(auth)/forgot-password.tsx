@@ -13,10 +13,14 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   Keyboard,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+
+const { width, height } = Dimensions.get("window");
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -114,8 +118,7 @@ const ForgotPassword = () => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "position" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -124,11 +127,11 @@ const ForgotPassword = () => {
           keyboardShouldPersistTaps="handled"
         >
           <SafeAreaView style={styles.container}>
-            {/* Logo Section */}
-            <View style={styles.topBackground}>
+            {/* Top Section */}
+            <View style={styles.topContainer}>
               <Image
                 source={{
-                  uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
+                  uri: "https://cdni.iconscout.com/illustration/premium/thumb/account-login-protection-illustration-download-in-svg-png-gif-file-formats--security-secure-pack-files-folders-illustrations-7271014.png",
                 }}
                 style={styles.logo}
               />
@@ -138,28 +141,43 @@ const ForgotPassword = () => {
             {!isCodeSent && (
               <View style={styles.formContainer}>
                 <Text style={styles.title}>Forgot Password</Text>
+                <Text style={styles.subtitle}>
+                  Enter your email to receive an OTP
+                </Text>
 
-                {/* Email Input */}
-                <TextInput
-                  placeholder="Enter your email"
-                  style={styles.input}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={email}
-                  onChangeText={setEmail}
-                />
+                <LinearGradient
+                  colors={["#9ba5bd", "#7487b5"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.inputContainer}
+                >
+                  <TextInput
+                    placeholder="Enter your email"
+                    style={styles.input}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholderTextColor="rgba(255,255,255,0.7)"
+                  />
+                </LinearGradient>
 
-                {/* Send OTP Button */}
                 <TouchableOpacity
                   onPress={handleForgotPassword}
-                  style={styles.button}
                   disabled={loading}
                 >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.buttonText}>Send OTP</Text>
-                  )}
+                  <LinearGradient
+                    colors={["#3A5BA9", "#08215e"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.button}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.buttonText}>Send OTP</Text>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
               </View>
             )}
@@ -168,8 +186,10 @@ const ForgotPassword = () => {
             {isCodeSent && (
               <View style={styles.formContainer}>
                 <Text style={styles.title}>Enter OTP</Text>
+                <Text style={styles.subtitle}>
+                  Enter the OTP sent to your email
+                </Text>
 
-                {/* OTP Code Inputs */}
                 <View style={styles.codeContainer}>
                   {code.map((digit, index) => (
                     <TextInput
@@ -179,22 +199,24 @@ const ForgotPassword = () => {
                       maxLength={1}
                       value={digit}
                       onChangeText={(text) => handleCodeChange(text, index)}
-                      ref={(ref) => (codeRefs.current[index] = ref)} // Assign ref to each input
+                      ref={(ref) => (codeRefs.current[index] = ref)}
                     />
                   ))}
                 </View>
 
-                {/* Verify OTP Button */}
-                <TouchableOpacity
-                  onPress={handleVerifyCode}
-                  style={styles.button}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.buttonText}>Verify OTP</Text>
-                  )}
+                <TouchableOpacity onPress={handleVerifyCode} disabled={loading}>
+                  <LinearGradient
+                    colors={["#3A5BA9", "#08215e"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.button}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.buttonText}>Verify OTP</Text>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
               </View>
             )}
@@ -208,80 +230,77 @@ const ForgotPassword = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9F9F9",
+    backgroundColor: "#1F3B8C",
     alignItems: "center",
   },
-  topBackground: {
-    width: "100%",
-    height: "60%",
-    backgroundColor: "#007BFF",
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-    alignItems: "center",
+  topContainer: {
+    width: width,
+    height: height * 0.3,
+    backgroundColor: "#3A5BA9",
+    borderBottomLeftRadius: "50%",
+    borderBottomRightRadius: "50%",
     justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 100,
   },
   logo: {
-    width: 170,
-    height: 170,
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
-    borderRadius: 70,
-    position: "absolute",
-    top: 40,
   },
   formContainer: {
-    width: "85%",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
+    width: width * 0.85,
     alignItems: "center",
-    marginTop: -120, // Adjusted to avoid overlap
+    marginTop: -40,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
+    color: "white",
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "white",
+    marginBottom: 20,
+  },
+  inputContainer: {
+    width: "100%",
+    borderRadius: 10,
     marginBottom: 15,
+    padding: 2,
   },
   input: {
     width: "100%",
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#F3F3F3",
-    marginBottom: 10,
+    padding: 15,
+    color: "white",
   },
   button: {
-    width: "100%",
-    padding: 12,
-    backgroundColor: "#007BFF",
-    borderRadius: 8,
+    width: width * 0.85,
+    paddingVertical: 14,
+    borderRadius: 25,
     alignItems: "center",
-    marginTop: 15,
+    justifyContent: "center",
+    marginBottom: 20,
   },
   buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    color: "white",
     fontWeight: "bold",
+    fontSize: 16,
   },
   codeContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
+    justifyContent: "center",
     marginBottom: 20,
   },
   codeInput: {
-    width: "15%",
-    padding: 12,
-    backgroundColor: "#F3F3F3",
+    width: 50,
+    height: 50,
+    fontSize: 18,
     textAlign: "center",
-    borderRadius: 8,
-  },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    alignSelf: "flex-start",
+    backgroundColor: "white",
+    marginHorizontal: 5,
+    borderRadius: 10,
   },
 });
 

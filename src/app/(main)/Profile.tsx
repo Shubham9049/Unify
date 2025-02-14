@@ -324,12 +324,12 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#1F3B8C",
     alignItems: "center",
   },
   profileSection: {
     width: "100%",
-    backgroundColor: "#007bff",
+    backgroundColor: "#3A5BA9",
     paddingBottom: 60,
     alignItems: "center",
     justifyContent: "center",
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   editButton: {
     backgroundColor: "#007bff",
     padding: 12,
-    borderRadius: 5,
+    borderRadius: 25,
     alignItems: "center",
     width: "100%",
     marginTop: 10,

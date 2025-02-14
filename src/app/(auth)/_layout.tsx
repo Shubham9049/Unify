@@ -8,6 +8,7 @@ const AuthStack = () => {
       screenOptions={{ headerShown: false, animation: "slide_from_right" }}
     >
       <Stack.Screen name="index" />
+      <Stack.Screen name="loginScreen" />
       <Stack.Screen name="register" />
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="reset-password" />

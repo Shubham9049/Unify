@@ -13,11 +13,15 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   Keyboard,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons"; // For icons
 import { router } from "expo-router";
 import axios from "axios";
+import { LinearGradient } from "expo-linear-gradient";
+
+const { width, height } = Dimensions.get("window");
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -118,88 +122,118 @@ const Register = () => {
           keyboardShouldPersistTaps="handled"
         >
           <SafeAreaView style={styles.container}>
-            {/* Logo Section */}
-            <View style={styles.topBackground}>
+            {/* Top Section with Illustration */}
+            <View style={styles.topContainer}>
               <Image
                 source={{
-                  uri: "https://bigwigmedia.ai/assets/bigwig-img-pvLFkfcL.jpg",
+                  uri: "https://cdni.iconscout.com/illustration/premium/thumb/account-login-protection-illustration-download-in-svg-png-gif-file-formats--security-secure-pack-files-folders-illustrations-7271014.png",
                 }}
-                style={styles.logo}
+                style={styles.topImage}
               />
             </View>
 
             {/* Registration Form */}
-            <View style={styles.formContainer}>
+            <View style={styles.content}>
               <Text style={styles.title}>Create Account</Text>
 
-              {/* Username Input */}
-              <TextInput
-                placeholder="Username"
-                style={styles.input}
-                value={formData.username}
-                onChangeText={(value) => handleChange("username", value)}
-              />
+              {/* Username Input with Gradient */}
+              <LinearGradient
+                colors={["#9ba5bd", "#7487b5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.inputContainer}
+              >
+                <Ionicons name="person-outline" size={20} color="white" />
+                <TextInput
+                  placeholder="Username"
+                  style={styles.input}
+                  value={formData.username}
+                  onChangeText={(value) => handleChange("username", value)}
+                  placeholderTextColor="rgba(255,255,255,0.7)"
+                />
+              </LinearGradient>
               {errors.username && (
                 <Text style={styles.errorText}>{errors.username}</Text>
               )}
 
-              {/* Email Input */}
-              <TextInput
-                placeholder="Email"
-                style={styles.input}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={formData.email}
-                onChangeText={(value) => handleChange("email", value)}
-              />
+              {/* Email Input with Gradient */}
+              <LinearGradient
+                colors={["#9ba5bd", "#7487b5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.inputContainer}
+              >
+                <Ionicons name="mail-outline" size={20} color="white" />
+                <TextInput
+                  placeholder="Email"
+                  style={styles.input}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={formData.email}
+                  onChangeText={(value) => handleChange("email", value)}
+                  placeholderTextColor="rgba(255,255,255,0.7)"
+                />
+              </LinearGradient>
               {errors.email && (
                 <Text style={styles.errorText}>{errors.email}</Text>
               )}
 
-              {/* Password Input with Show/Hide */}
-              <View style={styles.passwordContainer}>
+              {/* Password Input with Gradient */}
+              <LinearGradient
+                colors={["#9ba5bd", "#7487b5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.inputContainer}
+              >
+                <Ionicons name="lock-closed-outline" size={20} color="white" />
                 <TextInput
                   placeholder="Password"
                   style={styles.input}
                   secureTextEntry={!passwordVisible}
                   value={formData.password}
                   onChangeText={(value) => handleChange("password", value)}
+                  placeholderTextColor="rgba(255,255,255,0.7)"
                 />
                 <TouchableOpacity
                   onPress={() => setPasswordVisible(!passwordVisible)}
-                  style={styles.iconContainer}
                 >
                   <Ionicons
                     name={passwordVisible ? "eye-off-outline" : "eye-outline"}
-                    size={24}
-                    color="#666"
+                    size={20}
+                    color="white"
                   />
                 </TouchableOpacity>
-              </View>
+              </LinearGradient>
               {errors.password && (
                 <Text style={styles.errorText}>{errors.password}</Text>
               )}
 
-              {/* Register Button */}
-              <TouchableOpacity
-                onPress={handleRegister}
-                style={styles.registerButton}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.registerButtonText}>Create Account</Text>
-                )}
+              {/* Register Button with Gradient */}
+              <TouchableOpacity onPress={handleRegister} disabled={loading}>
+                <LinearGradient
+                  colors={["#3A5BA9", "#08215e"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.registerButton}
+                >
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.buttonText}>Create Account</Text>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
 
-              {/* Already have an account section */}
-              <View style={styles.footer}>
-                <Text style={styles.footerText}>Already have an account?</Text>
-                <TouchableOpacity onPress={() => router.push("/(auth)")}>
-                  <Text style={styles.footerLink}>Login</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Already have an account? */}
+              <Text style={styles.registerText}>
+                Already have an account?{" "}
+                <Text
+                  onPress={() => router.push("/(auth)/loginScreen")}
+                  style={styles.registerLink}
+                >
+                  Login
+                </Text>
+              </Text>
             </View>
           </SafeAreaView>
         </ScrollView>
@@ -211,92 +245,73 @@ const Register = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9F9F9",
+    backgroundColor: "#1F3B8C",
     alignItems: "center",
   },
-  topBackground: {
+  topContainer: {
     width: "100%",
-    height: "60%", // Adjusted height to fit logo properly
-    backgroundColor: "#007BFF",
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-    alignItems: "center",
+    height: height * 0.25,
+    backgroundColor: "#3A5BA9",
+    borderBottomLeftRadius: "50%",
+    borderBottomRightRadius: "50%",
     justifyContent: "center",
-  },
-  logo: {
-    width: 170,
-    height: 170,
-    resizeMode: "contain",
-    borderRadius: 70,
-    position: "absolute",
-    top: 40,
-  },
-  formContainer: {
-    width: "85%",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
     alignItems: "center",
-    marginTop: -120, // Adjusted to avoid overlap
+    marginBottom: 80,
+  },
+  topImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
+  },
+  content: {
+    width: width * 0.85,
+    alignItems: "center",
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
+    color: "white",
+    marginBottom: 5,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 10,
     marginBottom: 15,
   },
   input: {
-    width: "100%",
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#F3F3F3",
-    marginBottom: 10,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F3F3F3",
-    borderRadius: 8,
-    width: "100%",
-  },
-  iconContainer: {
-    position: "absolute",
-    right: 15,
-  },
-  registerButton: {
-    width: "100%",
-    padding: 12,
-    backgroundColor: "#007BFF",
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 15,
-  },
-  registerButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  footer: {
-    flexDirection: "row",
-    marginTop: 20,
-  },
-  footerText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  footerLink: {
-    fontSize: 14,
-    color: "#007BFF",
-    fontWeight: "bold",
-    marginLeft: 5,
+    flex: 1,
+    marginLeft: 10,
+    color: "white",
   },
   errorText: {
     color: "red",
     fontSize: 12,
     alignSelf: "flex-start",
+  },
+  registerButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    width: width * 0.85,
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  registerText: {
+    color: "white",
+  },
+  registerLink: {
+    color: "#FF512F",
+    fontWeight: "bold",
   },
 });
 
