@@ -31,9 +31,10 @@ const { width, height } = Dimensions.get("window");
 
 const loginScreen = () => {
   const [email, setEmail] = useState("");
+  const [empid, setEmpid] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [errors, setErrors] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({ empid: "", password: "" });
   const [loading, setLoading] = useState(false);
 
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
@@ -95,55 +96,49 @@ const loginScreen = () => {
     }
   }, []);
 
-  const validateInputs = () => {
-    let valid = true;
-    const newErrors = { email: "", password: "" };
+  // const validateInputs = () => {
+  //   let valid = true;
+  //   const newErrors = { empid: "", password: "" };
 
-    if (!email.trim()) {
-      newErrors.email = "Email is required";
-      valid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Invalid email format";
-      valid = false;
-    }
+  //   if (!empid.trim()) {
+  //     newErrors.empid = "Email is required";
+  //     valid = false;
+  //   } else if (!/\S+@\S+\.\S+/.test(email)) {
+  //     newErrors.empid = "Invalid email format";
+  //     valid = false;
+  //   }
 
-    if (!password.trim()) {
-      newErrors.password = "Password is required";
-      valid = false;
-    } else if (password.length < 4) {
-      newErrors.password = "Password must be at least 4 characters long";
-      valid = false;
-    }
+  //   if (!password.trim()) {
+  //     newErrors.password = "Password is required";
+  //     valid = false;
+  //   } else if (password.length < 4) {
+  //     newErrors.password = "Password must be at least 4 characters long";
+  //     valid = false;
+  //   }
 
-    setErrors(newErrors);
-    return valid;
-  };
+  //   setErrors(newErrors);
+  //   return valid;
+  // };
 
   const handleLogin = async () => {
-    if (!validateInputs()) return;
-
     setLoading(true);
-
     try {
       const response = await axios.post(
-        "https://app-database.onrender.com/user/login",
-        { email, password }
+        "https://app.bigwigmedia.in/LoginApi.php",
+        { empid, password }
       );
 
       const data = response.data;
+      console.log(data);
 
-      if (data.status === "ok") {
+      if (data.userInfo && data.userInfo.status === 1) {
         // Store the token in Async Storage
-        await AsyncStorage.setItem("authToken", data.token);
-        await AsyncStorage.setItem("username", data.user.username);
-        await AsyncStorage.setItem("email", data.user.email);
-        await AsyncStorage.setItem("profileImage", data.user.image);
-        await AsyncStorage.setItem("mongoId", data.user._id);
+        await AsyncStorage.setItem("username", data.userInfo.name);
+        await AsyncStorage.setItem("email", data.userInfo.email);
         // Navigate to the main screen
-        console.log(data.user._id);
         router.push("/(main)");
       } else {
-        alert(data.msg || "Login failed");
+        alert(data.error || "Login failed"); // Show error message from API
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -195,13 +190,13 @@ const loginScreen = () => {
                   style={styles.input}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  value={email}
-                  onChangeText={setEmail}
+                  value={empid}
+                  onChangeText={setEmpid}
                   placeholderTextColor="rgba(255,255,255,0.7)"
                 />
               </LinearGradient>
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
+              {errors.empid && (
+                <Text style={styles.errorText}>{errors.empid}</Text>
               )}
               {/* Password Field with Gradient */}
               <LinearGradient
