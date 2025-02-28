@@ -165,9 +165,7 @@ const loginScreen = () => {
             {/* Top Section with Illustration */}
             <View style={styles.topContainer}>
               <Image
-                source={{
-                  uri: "https://cdni.iconscout.com/illustration/premium/thumb/account-login-protection-illustration-download-in-svg-png-gif-file-formats--security-secure-pack-files-folders-illustrations-7271014.png",
-                }}
+                source={require("../../assets/images/logo.png")}
                 style={styles.topImage}
               />
             </View>
@@ -228,13 +226,13 @@ const loginScreen = () => {
                 <Text style={styles.errorText}>{errors.password}</Text>
               )}
               {/* Remember Me & Forgot Password */}
-              <View style={styles.forgotContainer}>
+              {/* <View style={styles.forgotContainer}>
                 <TouchableOpacity
                   onPress={() => router.push("/(auth)/forgot-password")}
                 >
                   <Text style={styles.forgotText}>Forgot Password?</Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
 
               {/* Login Button with Gradient */}
               <TouchableOpacity onPress={handleLogin}>
@@ -253,7 +251,7 @@ const loginScreen = () => {
               </TouchableOpacity>
 
               {/* Social Login */}
-              <View style={styles.socialLoginContainer}>
+              {/* <View style={styles.socialLoginContainer}>
                 <TouchableOpacity style={styles.socialButton}>
                   <AntDesign
                     name="google"
@@ -270,10 +268,10 @@ const loginScreen = () => {
                     onPress={onPressFacebook}
                   />
                 </TouchableOpacity>
-              </View>
+              </View> */}
 
               {/* Sign Up */}
-              <Text style={styles.registerText}>
+              {/* <Text style={styles.registerText}>
                 Don't have an account?{" "}
                 <Text
                   onPress={() => router.push("/(auth)/register")}
@@ -281,7 +279,7 @@ const loginScreen = () => {
                 >
                   Sign up
                 </Text>
-              </Text>
+              </Text> */}
             </View>
           </View>
         </ScrollView>

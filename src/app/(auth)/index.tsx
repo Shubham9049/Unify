@@ -45,7 +45,7 @@ const index = () => {
           </LinearGradient>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
+        {/* <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
           <LinearGradient
             colors={["#3A5BA9", "gray"]}
             start={{ x: 0, y: 0 }}
@@ -54,7 +54,7 @@ const index = () => {
           >
             <Text style={styles.buttonText}>SIGN UP</Text>
           </LinearGradient>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );

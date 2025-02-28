@@ -25,7 +25,7 @@ const RootNavigation = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        const token = await AsyncStorage.getItem("authToken");
+        const token = await AsyncStorage.getItem("email");
         setHasToken(!!token); // Check token presence
       } catch (error) {
         console.error("Error reading token from AsyncStorage:", error);

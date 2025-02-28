@@ -9,9 +9,6 @@ const AuthStack = () => {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="loginScreen" />
-      <Stack.Screen name="register" />
-      <Stack.Screen name="forgot-password" />
-      <Stack.Screen name="reset-password" />
     </Stack>
   );
 };

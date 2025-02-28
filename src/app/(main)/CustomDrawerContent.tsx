@@ -100,13 +100,13 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
         <Text style={styles.drawerButtonText}>Profile</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={() => navigation.navigate("chat")}
         style={styles.drawerButton}
       >
         <Ionicons name="chatbox-ellipses" size={24} color="#fff" style={styles.icon} />
         <Text style={styles.drawerButtonText}>Connections</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Logout button at the bottom */}
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>

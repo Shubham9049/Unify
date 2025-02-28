@@ -59,18 +59,12 @@ export default function App() {
     { name: "Dashboard", icon: "home", route: "Dashboard" },
     { name: "Leads", icon: "account-plus", route: "LeadsScreen" },
     {
-      name: "University Leads",
-      icon: "school",
-      route: "UniversityLeadsScreen",
-    },
-    {
       name: "Applications",
       icon: "file-document", // Updated from "file-tray-full"
       route: "ApplicationsScreen",
     },
-    { name: "Campaigns", icon: "bullhorn", route: "CampaignsScreen" },
-    { name: "Email/Notifications", icon: "mail", route: "NotificationsScreen" },
-    { name: "Cron Emailer", icon: "timer", route: "CronEmailerScreen" },
+    { name: "Application Review ", icon: "file-check", route: "ApplicationReview" },
+    
     { name: "Users", icon: "account-multiple", route: "UsersScreen" },
     { name: "Queries", icon: "help-circle", route: "QueriesScreen" },
     {
@@ -83,7 +77,7 @@ export default function App() {
 
   return (
     <LinearGradient
-      colors={["#0F2027", "#203A43", "#2C5364"]}
+    colors={["#1F3B8C", "#3A5BA9"]}
       style={styles.container}
     >
       {/* Header */}
@@ -119,7 +113,7 @@ export default function App() {
             <View style={styles.iconCircle}>
               <Icon
                 name={section.icon}
-                size={30}
+                size={32}
                 color="#fff"
                 style={styles.icon3D}
               />

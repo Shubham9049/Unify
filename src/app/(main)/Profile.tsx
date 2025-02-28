@@ -199,14 +199,14 @@ export default function Profile() {
           )}
 
           {/* Change Profile Image Button */}
-          {!isGoogleOrFacebookUser && (
+          {/* {!isGoogleOrFacebookUser && (
             <TouchableOpacity
               onPress={handleProfileImageChange}
               style={styles.changeImageButton}
             >
               <MaterialIcons name="camera-alt" size={22} color="white" />
             </TouchableOpacity>
-          )}
+          )} */}
         </View>
       </View>
 
@@ -216,107 +216,7 @@ export default function Profile() {
         <Text style={styles.userEmail}>{userEmail}</Text>
       </View>
 
-      {/* Profile Details Section */}
-      <View style={styles.detailsCard}>
-        {/* Gender Selection */}
-        <Text style={styles.label}>Gender</Text>
-        {isEditing ? (
-          <View style={styles.genderSelection}>
-            <TouchableOpacity
-              style={[
-                styles.genderButton,
-                editableUserInfo.Gender === "Male" && styles.selectedGender,
-              ]}
-              onPress={() =>
-                setEditableUserInfo({ ...editableUserInfo, Gender: "Male" })
-              }
-            >
-              <Text style={styles.genderButtonText}>Male</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.genderButton,
-                editableUserInfo.Gender === "Female" && styles.selectedGender,
-              ]}
-              onPress={() =>
-                setEditableUserInfo({ ...editableUserInfo, Gender: "Female" })
-              }
-            >
-              <Text style={styles.genderButtonText}>Female</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <Text style={styles.infoText}>
-            {userInfo.Gender ? userInfo.Gender : ""}
-          </Text>
-        )}
-
-        {/* Phone Input */}
-        <Text style={styles.label}>Phone</Text>
-        {isEditing ? (
-          <TextInput
-            style={styles.input}
-            placeholder="Enter phone number"
-            value={editableUserInfo.phone}
-            onChangeText={(text) =>
-              setEditableUserInfo({ ...editableUserInfo, phone: text })
-            }
-            keyboardType="phone-pad"
-          />
-        ) : (
-          <Text style={styles.infoText}>
-            {userInfo.phone ? userInfo.phone : ""}
-          </Text>
-        )}
-
-        {/* Nationality Input */}
-        <Text style={styles.label}>Nationality</Text>
-        {isEditing ? (
-          <Picker
-            selectedValue={editableUserInfo.nationality}
-            style={styles.input}
-            onValueChange={(value) =>
-              setEditableUserInfo({ ...editableUserInfo, nationality: value })
-            }
-          >
-            {countries.map((country, index) => (
-              <Picker.Item key={index} label={country} value={country} />
-            ))}
-          </Picker>
-        ) : (
-          <Text style={styles.infoText}>
-            {userInfo.nationality || "Not Provided"}
-          </Text>
-        )}
-
-        {/* Edit / Save & Cancel Buttons */}
-        <View style={styles.buttonContainer}>
-          {isEditing ? (
-            <>
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSaveChanges}
-              >
-                <Text style={styles.buttonText}>Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleEditToggle}
-              >
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handleEditToggle}
-            >
-              <Text style={styles.buttonText}>Edit Profile</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      
     </View>
   );
 }
@@ -378,7 +278,7 @@ const styles = StyleSheet.create({
     width: "90%",
     padding: 20,
     borderRadius: 15,
-    marginTop: -40,
+    marginTop: 40,
     alignItems: "center",
   },
   userName: {
