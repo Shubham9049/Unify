@@ -72,7 +72,6 @@ export default function App() {
       icon: "store-marker-outline", // Updated from "location"
       route: "CampusVisitScreen",
     },
-    { name: "Refer Friends", icon: "gift", route: "ReferFriendsScreen" },
   ];
 
   return (
