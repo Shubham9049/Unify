@@ -33,11 +33,10 @@ const ApplicationReviewScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#1F3B8C", "#3A5BA9"]} style={styles.container}>
+    <LinearGradient colors={["#0F172A", "#1E293B"]} style={styles.container}>
       <Text style={styles.title}>Application Review</Text>
 
       {/* Input Field */}
-      
       <TextInput
         style={styles.input}
         placeholder="Enter Application Number"
@@ -52,7 +51,7 @@ const ApplicationReviewScreen = () => {
       </TouchableOpacity>
 
       {/* Loading Indicator */}
-      {loading && <ActivityIndicator size="large" color="#fff" style={styles.loader} />}
+      {loading && <ActivityIndicator size="large" color="#FACC15" style={styles.loader} />}
 
       {/* Error Message */}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -61,15 +60,21 @@ const ApplicationReviewScreen = () => {
       {applicationData && (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Application Details</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>ID:</Text> {applicationData["Student ID"]}</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>Name:</Text> {applicationData["Student Name"]}</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>Email:</Text> {applicationData["Email"]}</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>Mobile:</Text> {applicationData["Mobile Number"]}</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>Status:</Text> {applicationData["Status"]}</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>Lead Source:</Text> {applicationData["Lead Source"]}</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>Lead Status:</Text> {applicationData["Lead Status"]}</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>Reg. Date:</Text> {applicationData["Registration Date"]}</Text>
-          <Text style={styles.cardText}><Text style={styles.label}>Programme:</Text> {applicationData["Programme Name"]}</Text>
+          {[
+            { label: 'ID', key: 'Student ID' },
+            { label: 'Name', key: 'Student Name' },
+            { label: 'Email', key: 'Email' },
+            { label: 'Mobile', key: 'Mobile Number' },
+            { label: 'Status', key: 'Status' },
+            { label: 'Lead Source', key: 'Lead Source' },
+            { label: 'Lead Status', key: 'Lead Status' },
+            { label: 'Reg. Date', key: 'Registration Date' },
+            { label: 'Programme', key: 'Programme Name' }
+          ].map(({ label, key }) => (
+            <Text key={key} style={styles.cardText}>
+              <Text style={styles.label}>{label}:</Text> {applicationData[key]}
+            </Text>
+          ))}
         </View>
       )}
     </LinearGradient>
@@ -81,65 +86,64 @@ export default ApplicationReviewScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 15,
     paddingTop: 40,
   },
   title: {
     fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 20,
+    fontWeight: 'bold',
+    color: '#FACC15',
+    marginBottom: 15,
+    textAlign: 'center',
   },
   input: {
-    height: 50,
-    borderColor: "#fff",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    color: "#fff",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+    color: '#fff',
+    fontSize: 16,
   },
   button: {
-    backgroundColor: "#fff",
-    paddingVertical: 12,
+    backgroundColor: '#FACC15',
+    paddingVertical: 10,
     borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
+    alignItems: 'center',
+    marginBottom: 15,
   },
   buttonText: {
-    color: "#1F3B8C",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
+    color: '#1F3B8C',
   },
   loader: {
-    marginTop: 10,
+    marginVertical: 15,
   },
   errorText: {
-    color: "#ff4d4d",
-    textAlign: "center",
-    marginTop: 5,
+    color: '#ff6b6b',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 10,
   },
   card: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     padding: 15,
     borderRadius: 10,
     marginTop: 15,
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: 'bold',
+    color: '#FACC15',
     marginBottom: 10,
-    textAlign: "center",
   },
   cardText: {
-    color: "#fff",
     fontSize: 14,
+    color: '#fff',
     marginBottom: 5,
   },
   label: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
+    color: '#FACC15',
   },
 });

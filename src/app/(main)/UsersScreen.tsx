@@ -12,28 +12,20 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { LinearGradient } from "expo-linear-gradient";
 
-// Define Type for User
-type User = {
-  Type: string;
-  Name: string;
-  Email: string;
-  Mobile: string;
-};
-
 const UsersScreen = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setusers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [filteredusers, setFilteredusers] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15; // Number of items per page
+  const itemsPerPage = 15;
 
   useEffect(() => {
     axios
-      .get<User[]>("https://app.bigwigmedia.in/UsersApi.php")
+      .get("https://app.bigwigmedia.in/UsersApi.php")
       .then((response) => {
-        setUsers(response.data);
-        setFilteredUsers(response.data);
+        setusers(response.data);
+        setFilteredusers(response.data);
         setLoading(false);
       })
       .catch((error) => {
@@ -42,30 +34,27 @@ const UsersScreen = () => {
       });
   }, []);
 
-  // Search Filter
   useEffect(() => {
-    const filtered = users.filter((user) =>
-      Object.values(user)
+    const filtered = users.filter((query) =>
+      Object.values(query)
         .join(" ")
         .toLowerCase()
         .includes(searchText.toLowerCase())
     );
-    setFilteredUsers(filtered);
-    setCurrentPage(1); // Reset to page 1 when searching
+    setFilteredusers(filtered);
+    setCurrentPage(1);
   }, [searchText, users]);
 
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedData = filteredUsers.slice(
+  const totalPages = Math.ceil(filteredusers.length / itemsPerPage);
+  const paginatedData = filteredusers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   return (
-    <LinearGradient colors={["#1F3B8C", "#3A5BA9"]} style={styles.container}>
+    <LinearGradient colors={["#0F172A", "#1E293B"]} style={styles.container}>
       <Text style={styles.title}>Users</Text>
 
-      {/* Search Input */}
       <TextInput
         style={styles.searchInput}
         placeholder="Search"
@@ -76,29 +65,29 @@ const UsersScreen = () => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color="#FACC15" />
         </View>
       ) : (
         <ScrollView horizontal>
-          <View style={{ minWidth: 600 }}> {/* Ensures scrollability */}
-            {/* Table Header */}
+          <View>
             <View style={[styles.row, styles.header]}>
               <Text style={styles.headerText}>Type</Text>
               <Text style={styles.headerText}>Name</Text>
               <Text style={styles.headerText}>Email</Text>
               <Text style={styles.headerText}>Mobile</Text>
             </View>
-
-            {/* Table Data */}
+            
             <FlatList
-              data={paginatedData} // Use paginated data
+              data={paginatedData}
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item, index }) => (
-                <View style={[styles.row, index % 2 === 0 ? styles.evenRow : styles.oddRow]}>
-                  <Text style={styles.cell}>{item.Type}</Text>
-                  <Text style={styles.cell}>{item.Name}</Text>
-                  <Text style={styles.cell}>{item.Email}</Text>
-                  <Text style={styles.cell}>{item.Mobile}</Text>
+                <View
+                  style={[styles.row, index % 2 === 0 ? styles.evenRow : styles.oddRow]}
+                >
+                  <Text style={styles.cell}>{item["Type"]}</Text>
+                  <Text style={styles.cell}>{item["Name"]}</Text>
+                  <Text style={styles.cell}>{item["Email"]}</Text>
+                  <Text style={styles.cell}>{item["Mobile"]}</Text>
                 </View>
               )}
             />
@@ -106,7 +95,6 @@ const UsersScreen = () => {
         </ScrollView>
       )}
 
-      {/* Pagination Controls */}
       <View style={styles.paginationContainer}>
         <TouchableOpacity
           style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
@@ -127,7 +115,7 @@ const UsersScreen = () => {
         </TouchableOpacity>
       </View>
     </LinearGradient>
-  )
+  );
 };
 
 export default UsersScreen;
@@ -141,18 +129,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#FACC15",
     marginBottom: 15,
     textAlign: "center",
-  },
-  searchInput: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 15,
-    color: "#fff",
-    fontSize: 16,
-
   },
   row: {
     flexDirection: "row",
@@ -162,15 +141,16 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(255, 255, 255, 0.2)",
   },
   header: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "#1E293B",
     borderRadius: 10,
     paddingVertical: 15,
+    marginBottom:5
   },
   headerText: {
     width: 150,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#fff",
+    color: "#FACC15",
   },
   cell: {
     width: 150,
@@ -195,7 +175,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   paginationButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FACC15",
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 8,
@@ -208,9 +188,17 @@ const styles = StyleSheet.create({
   },
   pageNumber: {
     fontSize: 16,
-    color: "#fff",
+    color: "#FACC15",
   },
   disabledButton: {
     backgroundColor: "gray",
+  },
+  searchInput: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+    color: "#fff",
+    fontSize: 16,
   },
 });

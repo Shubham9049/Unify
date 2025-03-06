@@ -19,7 +19,7 @@ const index = () => {
   useWarmUpBrowser();
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={["#16222A", "#3A6073"]} style={styles.container}>
       <View style={styles.imageContainer}>
         <Image
           source={require("../../assets/images/logo.png")}
@@ -36,7 +36,7 @@ const index = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity onPress={() => router.replace("/(auth)/loginScreen")}>
           <LinearGradient
-            colors={["#3A5BA9", "gray"]}
+            colors={["#16222A", "#3A6073","gray"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.loginButton}
@@ -45,18 +45,9 @@ const index = () => {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-          <LinearGradient
-            colors={["#3A5BA9", "gray"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.signupButton}
-          >
-            <Text style={styles.buttonText}>SIGN UP</Text>
-          </LinearGradient>
-        </TouchableOpacity> */}
+        
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 

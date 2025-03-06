@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, FlatList, ScrollView, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, FlatList, ActivityIndicator, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -33,7 +33,7 @@ const LeadsScreen = () => {
         .includes(searchText.toLowerCase())
     );
     setFilteredStudents(filtered);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   }, [searchText, students]);
 
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -43,9 +43,8 @@ const LeadsScreen = () => {
   );
 
   return (
-    <LinearGradient colors={["#1F3B8C", "#3A5BA9"]} style={styles.container}>
+    <LinearGradient colors={["#0F172A", "#1E293B"]} style={styles.container}>
       <Text style={styles.title}>Student Applications</Text>
-
       <TextInput
         style={styles.searchInput}
         placeholder="Search"
@@ -56,39 +55,25 @@ const LeadsScreen = () => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color="#FACC15" />
         </View>
       ) : (
         <ScrollView horizontal>
           <View>
-            <View style={[styles.row, styles.header]}>
-              <Text style={styles.headerText}>ID</Text>
-              <Text style={styles.headerText}>Name</Text>
-              <Text style={styles.headerText}>Email</Text>
-              <Text style={styles.headerText}>Mobile</Text>
-              <Text style={styles.headerText}>Status</Text>
-              <Text style={styles.headerText}>Lead Source</Text>
-              <Text style={styles.headerText}>Lead Status</Text>
-              <Text style={styles.headerText}>Reg. Date</Text>
-              <Text style={styles.headerText}>App No.</Text>
-              <Text style={styles.headerText}>Programme</Text>
+            <View style={styles.tableHeader}>
+              {["ID", "Name", "Email", "Mobile", "Status", "Lead Source", "Lead Status", "Reg. Date", "App No.", "Programme"].map((header) => (
+                <Text key={header} style={styles.headerText}>{header}</Text>
+              ))}
             </View>
 
             <FlatList
               data={paginatedData}
               keyExtractor={(item) => String(item["Student ID"])}
               renderItem={({ item, index }) => (
-                <View style={[styles.row, index % 2 === 0 ? styles.evenRow : styles.oddRow]}>
-                  <Text style={styles.cell}>{item["Student ID"]}</Text>
-                  <Text style={styles.cell}>{item["Student Name"]}</Text>
-                  <Text style={styles.cell}>{item["Email"]}</Text>
-                  <Text style={styles.cell}>{item["Mobile Number"]}</Text>
-                  <Text style={styles.cell}>{item["Status"]}</Text>
-                  <Text style={styles.cell}>{item["Lead Source"]}</Text>
-                  <Text style={styles.cell}>{item["Lead Status"]}</Text>
-                  <Text style={styles.cell}>{item["Registration Date"]}</Text>
-                  <Text style={styles.cell}>{item["Application Number"]}</Text>
-                  <Text style={styles.cell}>{item["Programme Name"]}</Text>
+                <View style={[styles.tableRow, index % 2 === 0 ? styles.evenRow : styles.oddRow]}>
+                  {["Student ID", "Student Name", "Email", "Mobile Number", "Status", "Lead Source", "Lead Status", "Registration Date", "Application Number", "Programme Name"].map((key) => (
+                    <Text key={key} style={styles.cell}>{item[key]}</Text>
+                  ))}
                 </View>
               )}
             />
@@ -130,7 +115,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#FACC15",
     marginBottom: 15,
     textAlign: "center",
   },
@@ -141,9 +126,21 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: "#fff",
     fontSize: 16,
-
   },
-  row: {
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: "#1E293B",
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 5,
+  },
+  headerText: {
+    width: 100,
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "#FACC15",
+  },
+  tableRow: {
     flexDirection: "row",
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -154,17 +151,6 @@ const styles = StyleSheet.create({
   },
   oddRow: {
     backgroundColor: "rgba(255, 255, 255, 0.05)",
-  },
-  header: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 10,
-    paddingVertical: 15,
-  },
-  headerText: {
-    width: 100,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#fff",
   },
   cell: {
     width: 100,
@@ -183,7 +169,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   paginationButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FACC15",
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 8,
@@ -196,7 +182,7 @@ const styles = StyleSheet.create({
   },
   pageNumber: {
     fontSize: 16,
-    color: "#fff",
+    color: "#FACC15",
   },
   disabledButton: {
     backgroundColor: "gray",

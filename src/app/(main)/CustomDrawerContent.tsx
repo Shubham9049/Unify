@@ -2,39 +2,24 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { DrawerContentComponentProps } from "@react-navigation/drawer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useAuth, useClerk, useUser } from "@clerk/clerk-expo";
 import { useDispatch, useSelector } from "react-redux";
-import { setProfileImage } from "../../redux/profileSlice";
 import { Ionicons } from "@expo/vector-icons"; // Importing Ionicons for icons
 import { router } from "expo-router";
 
 function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
-  const { signOut } = useClerk();
-  const { userId } = useAuth();
-  const { user } = useUser();
-  const [authToken, setAuthToken] = useState("");
   const [storedUsername, setStoredUsername] = useState("");
   const [storedEmail, setStoredEmail] = useState("");
   const dispatch = useDispatch();
-  const profileImage = useSelector((state: any) => state.profile.profileImage);
 
   useEffect(() => {
     const fetchAuthData = async () => {
       try {
-        if (userId) {
-          await AsyncStorage.setItem("authToken", userId);
-        }
-        const token = await AsyncStorage.getItem("authToken");
+
         const username = await AsyncStorage.getItem("username");
         const email = await AsyncStorage.getItem("email");
-        const image = await AsyncStorage.getItem("profileImage");
-        setAuthToken(token || "No token found");
         setStoredUsername(username || "Guest");
         setStoredEmail(email || "No email found");
-        // Check if profile image exists in AsyncStorage and update Redux state
-        if (image) {
-          dispatch(setProfileImage(image));
-        }
+        
       } catch (error) {
         console.error("Error fetching auth data:", error);
       }
@@ -45,34 +30,26 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem("authToken");
       await AsyncStorage.removeItem("username");
       await AsyncStorage.removeItem("email");
-      await AsyncStorage.removeItem("profileImage");
-      await AsyncStorage.removeItem("mongoId");
-      await signOut();
-      router.push("/(auth)");
+      router.push("/(auth)/loginScreen");
     } catch (error) {
       console.error("Error during logout:", error);
     }
   };
 
-  const userName = user?.fullName || storedUsername;
-  const userEmail = user?.primaryEmailAddress?.emailAddress || storedEmail;
-  const displayImage = user?.imageUrl || profileImage || null;
+  const userName =  storedUsername;
+  const userEmail = storedEmail;
 
   return (
     <View style={styles.drawerContainer}>
       <View style={styles.profileSection}>
-        {displayImage ? (
-          <Image source={{ uri: displayImage }} style={styles.profileImage} />
-        ) : (
+        
           <View style={styles.profilePlaceholder}>
             <Text style={styles.profileInitial}>
               {userName.charAt(0).toUpperCase()}
             </Text>
           </View>
-        )}
 
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{userName}</Text>
@@ -100,13 +77,6 @@ function CustomDrawerContent({ navigation }: DrawerContentComponentProps) {
         <Text style={styles.drawerButtonText}>Profile</Text>
       </TouchableOpacity>
 
-      {/* <TouchableOpacity
-        onPress={() => navigation.navigate("chat")}
-        style={styles.drawerButton}
-      >
-        <Ionicons name="chatbox-ellipses" size={24} color="#fff" style={styles.icon} />
-        <Text style={styles.drawerButtonText}>Connections</Text>
-      </TouchableOpacity> */}
 
       {/* Logout button at the bottom */}
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
@@ -141,7 +111,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#ccc",
+    backgroundColor: "#FFB100",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,

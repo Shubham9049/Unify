@@ -21,11 +21,11 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <LinearGradient colors={["#1F3B8C", "#3A5BA9"]} style={styles.container}>
+    <LinearGradient colors={["#0F172A", "#1E293B"]} style={styles.container}>
       <Text style={styles.title}> Dashboard</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#fff" style={styles.loader} />
+        <ActivityIndicator size="large" color="#FACC15" style={styles.loader} />
       ) : (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Total Leads</Text>
@@ -45,35 +45,40 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#FACC15",
     textAlign: "center",
     marginBottom: 20,
+    textTransform: "uppercase",
   },
   loader: {
     marginTop: 20,
   },
   card: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     padding: 20,
     borderRadius: 12,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowColor: "#FACC15",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
   },
   cardTitle: {
     fontSize: 18,
-    color: "#fff",
+    color: "#FACC15",
     fontWeight: "bold",
     marginBottom: 10,
+    textTransform: "uppercase",
   },
   count: {
-    fontSize: 36,
+    fontSize: 38,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#FACC15",
+    textShadowColor: "rgba(250, 204, 21, 0.75)",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
 });

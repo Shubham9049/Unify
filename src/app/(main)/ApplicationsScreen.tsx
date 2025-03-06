@@ -57,7 +57,7 @@ const ApplicationsScreen = () => {
   );
 
   return (
-    <LinearGradient colors={["#1F3B8C", "#3A5BA9"]} style={styles.container}>
+    <LinearGradient colors={["#0F172A", "#1E293B"]} style={styles.container}>
       <Text style={styles.title}>Student Verified Applications</Text>
 
       {/* Search Input */}
@@ -71,7 +71,7 @@ const ApplicationsScreen = () => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color="#FACC15" />
         </View>
       ) : (
         <>
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#FACC15",
     marginBottom: 15,
     textAlign: "center",
   },
@@ -178,15 +178,16 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(255, 255, 255, 0.2)",
   },
   header: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "#1E293B",
     borderRadius: 10,
     paddingVertical: 15,
+    marginBottom: 5,
   },
   headerText: {
     width: 100,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#fff",
+    color: "#FACC15",
   },
   cell: {
     width: 100,
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   paginationButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FACC15",
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 8,
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
   },
   pageNumber: {
     fontSize: 16,
-    color: "#fff",
+    color: "#FACC15",
   },
   disabledButton: {
     backgroundColor: "gray",
